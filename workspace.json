@@ -1,6 +1,52 @@
 {
 	"version": 1,
-	"projects": {},
+	"projects": {
+		"spec": {
+			"root": "packages/spec",
+			"sourceRoot": "packages/spec/src",
+			"projectType": "library",
+			"schematics": {},
+			"architect": {
+				"lint": {
+					"builder": "@nrwl/linter:eslint",
+					"options": {
+						"lintFilePatterns": ["packages/spec/**/*.ts"]
+					}
+				}
+			}
+		},
+		"vscode-lox": {
+			"root": "packages/vscode-lox",
+			"sourceRoot": "packages/vscode-lox/src",
+			"projectType": "library",
+			"schematics": {},
+			"architect": {
+				"lint": {
+					"builder": "@nrwl/linter:eslint",
+					"options": {
+						"lintFilePatterns": ["packages/vscode-lox/**/*.ts"]
+					}
+				},
+				"test": {
+					"builder": "@nrwl/jest:jest",
+					"options": {
+						"jestConfig": "packages/vscode-lox/jest.config.js",
+						"passWithNoTests": true
+					}
+				},
+				"build": {
+					"builder": "@nrwl/node:package",
+					"options": {
+						"outputPath": "dist/packages/vscode-lox",
+						"tsConfig": "packages/vscode-lox/tsconfig.lib.json",
+						"packageJson": "packages/vscode-lox/package.json",
+						"main": "packages/vscode-lox/src/index.ts",
+						"assets": ["packages/vscode-lox/*.md"]
+					}
+				}
+			}
+		}
+	},
 	"cli": {
 		"defaultCollection": "@nrwl/workspace"
 	}

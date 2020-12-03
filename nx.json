@@ -22,7 +22,14 @@
 			}
 		}
 	},
-	"projects": {},
+	"projects": {
+		"spec": {
+			"tags": []
+		},
+		"vscode-lox": {
+			"tags": []
+		}
+	},
 	"workspaceLayout": {
 		"appsDir": "packages",
 		"libsDir": "packages"

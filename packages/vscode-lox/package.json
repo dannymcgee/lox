@@ -1,0 +1,40 @@
+{
+	"name": "vscode-lox",
+	"description": "Language support for Lox",
+	"displayName": "Lox",
+	"version": "0.0.1",
+	"author": "Danny McGee",
+	"license": "MIT",
+	"engines": {
+		"vscode": "^1.22.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": ""
+	},
+	"contributes": {
+		"languages": [
+			{
+				"id": "lox",
+				"extensions": [
+					".lox"
+				],
+				"configuration": "./grammars/language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "lox",
+				"scopeName": "source.lox",
+				"path": "./grammars/lox.tmLanguage."
+			}
+		]
+	},
+	"activationEvents": [
+		"onLanguage:lox"
+	],
+	"devDependencies": {
+		"chalk": "^4.1.0",
+		"fs-extra": "^9.0.1"
+	}
+}
