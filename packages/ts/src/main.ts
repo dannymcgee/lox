@@ -3,8 +3,12 @@ import * as FS from 'fs-extra';
 import * as Chalk from 'chalk';
 import { createInterface, ReadLine } from 'readline';
 
+import { Scanner } from './lib/scanner';
+
 class Lox {
-	public static main(args: string[]): void {
+	static hadError: boolean;
+
+	static main(args: string[]) {
 		let normalized = args
 			.slice(2)
 			.map((arg) => arg?.trim())
@@ -33,24 +37,20 @@ class Lox {
 		return this._rl;
 	}
 
-	private static runFile(path: string): void {
+	private static runFile(path: string) {
 		let resolved = Path.resolve(process.cwd(), path);
 		let content = FS.readFileSync(resolved);
-		let result = this.run(content);
 		let prefix = Chalk.bold('Running file:');
 		console.clear();
 		console.log(`${prefix} ${resolved}`);
 
+		let result = this.run(content);
+		if (this.hadError) process.exit(65);
+
 		this.print(result);
 	}
 
-	private static print(content: string): void {
-		let prefix = Chalk.bold.cyan('=>');
-
-		console.log(`${prefix} ${Chalk.gray(content)}`);
-	}
-
-	private static runPrompt(previousResult?: string): void {
+	private static runPrompt(previousResult?: string) {
 		console.clear();
 		console.log(Chalk.bold('Enter some Lox code to run it'));
 		if (previousResult) {
@@ -60,13 +60,34 @@ class Lox {
 
 		this.rl.question(Chalk.bold.blue('> '), (input) => {
 			let result = this.run(input);
+			this.hadError = false;
 
 			this.runPrompt(result);
 		});
 	}
 
-	private static run(script: Buffer | string): string {
-		return script.toString();
+	private static print(content: string) {
+		let prefix = Chalk.bold.cyan('=>');
+
+		console.log(`${prefix} ${Chalk.gray(content)}`);
+	}
+
+	private static run(source: Buffer | string): string {
+		let scanner = new Scanner(source);
+		let tokens = scanner.scanTokens();
+
+		return tokens.join('\n');
+	}
+
+	private static error(line: number, message: string) {
+		this.report(line, '', message);
+	}
+
+	private static report(line: number, where: string, message: string) {
+		let err = Chalk.bold.red(`[line ${line}] Error${where}: ${message}`);
+		console.log(err);
+
+		this.hadError = true;
 	}
 }
 
