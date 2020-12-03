@@ -4,6 +4,7 @@
 	"displayName": "Lox",
 	"version": "0.0.1",
 	"author": "Danny McGee",
+	"publisher": "dannymcgee",
 	"license": "MIT",
 	"engines": {
 		"vscode": "^1.22.0"
@@ -26,7 +27,7 @@
 			{
 				"language": "lox",
 				"scopeName": "source.lox",
-				"path": "./grammars/lox.tmLanguage."
+				"path": "./grammars/lox.tmLanguage.json"
 			}
 		]
 	},
