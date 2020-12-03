@@ -1,7 +1,7 @@
 {
-  "version": 1,
-  "projects": {},
-  "cli": {
-    "defaultCollection": "@nrwl/workspace"
-  }
+	"version": 1,
+	"projects": {},
+	"cli": {
+		"defaultCollection": "@nrwl/workspace"
+	}
 }
