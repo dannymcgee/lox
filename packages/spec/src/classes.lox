@@ -22,7 +22,7 @@ breakfast.bread = "sourdough";
 
 // initialization
 class Breakfast {
-	init(meat, bread) {
+	init (meat, bread) {
 		this.meat = meat;
 		this.bread = bread;
 	}
@@ -48,7 +48,7 @@ benedict.serve("Noble Reader");
 
 // init extension
 class Brunch < Breakfast {
-	init(meat, bread, drink) {
+	init (meat, bread, drink) {
 		super.init(meat, bread);
 		this.drink = drink;
 	}
