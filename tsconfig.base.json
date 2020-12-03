@@ -16,7 +16,8 @@
 		"skipDefaultLibCheck": true,
 		"baseUrl": ".",
 		"paths": {
-			"vscode-lox": ["packages/vscode-lox/src/index.ts"]
+			"vscode-lox": ["packages/vscode-lox/src/index.ts"],
+			"@lox/ts": ["packages/ts/src/index.ts"]
 		}
 	},
 	"exclude": ["node_modules", "tmp"]

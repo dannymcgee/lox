@@ -28,6 +28,9 @@
 		},
 		"vscode-lox": {
 			"tags": []
+		},
+		"ts": {
+			"tags": []
 		}
 	},
 	"workspaceLayout": {
