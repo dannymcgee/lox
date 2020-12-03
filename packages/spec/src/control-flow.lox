@@ -1,0 +1,18 @@
+// conditional
+if (condition) {
+	print "yes";
+} else {
+	print "no";
+}
+
+// while loop
+var a = 1;
+while (a < 10) {
+	print a;
+	a++;
+}
+
+// for loop
+for (var a = 1; a < 10; a++) {
+	print a;
+}

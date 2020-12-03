@@ -1,0 +1,11 @@
+// print statement
+print "Hello, world!";
+
+// expression statement
+"some expression";
+
+// block statement
+{
+	print "One statement";
+	print "Two statements";
+}

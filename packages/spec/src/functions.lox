@@ -1,0 +1,48 @@
+// call
+makeBreakfast(bacon, eggs, toast);
+makeBreakfast();
+
+// definition
+fn printSum(a, b) {
+	print a + b;
+}
+
+fn returnSum(a, b) {
+	return a + b;
+}
+
+// arrow shorthand?
+fn returnSum(a, b) => a + b;
+
+// lambdas?
+fn (a, b) => a + b;
+fn (a, b) {
+	return a + b;
+}
+
+// closures
+fn addPairs(a, b) {
+	return a + b;
+}
+fn identity(a) {
+	return a;
+}
+print identity(addPair)(1, 2); // => 3
+
+fn outerFunction() {
+	fn localFunction () {
+		print "I'm local!";
+	}
+	localFunction();
+}
+
+fn returnFunction() {
+	var outside = "outside";
+	fn inner() {
+		print outside;
+	}
+
+	return inner;
+}
+var foo = returnFunction();
+foo();

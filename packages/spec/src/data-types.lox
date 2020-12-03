@@ -1,0 +1,13 @@
+// boolean
+true;
+false;
+
+// numbers
+1234;
+3.141;
+
+// strings
+"I am a string";
+
+// empty
+nil;

@@ -1,0 +1,30 @@
+// arithmetic
+add + me;
+subtract + me;
+multiply * me;
+divide / me;
+-negateMe;
+// (bonus)
+incrementMe++;
+decrementMe--;
+
+// comparison
+less < than;
+lessThan <= orEqual;
+greater > than;
+greaterThan >= orEqual;
+1 == 2;         // false
+"cat" != "dog"; // true
+123 == "123";   // false
+
+// logical
+!true;  // false
+!false; // true
+
+true and false; // false
+true and true;  // true
+true or false;  // true
+false or false; // false
+
+// precedence and grouping
+var average = (min + max) / 2;
