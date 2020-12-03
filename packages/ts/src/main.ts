@@ -4,10 +4,9 @@ import * as Chalk from 'chalk';
 import { createInterface, ReadLine } from 'readline';
 
 import { Scanner } from './lib/scanner';
+import { ErrorReporter } from './lib/error-reporter';
 
 class Lox {
-	static hadError: boolean;
-
 	static main(args: string[]) {
 		let normalized = args
 			.slice(2)
@@ -45,7 +44,7 @@ class Lox {
 		console.log(`${prefix} ${resolved}`);
 
 		let result = this.run(content);
-		if (this.hadError) process.exit(65);
+		if (ErrorReporter.hadError) process.exit(65);
 
 		this.print(result);
 	}
@@ -60,7 +59,7 @@ class Lox {
 
 		this.rl.question(Chalk.bold.blue('> '), (input) => {
 			let result = this.run(input);
-			this.hadError = false;
+			ErrorReporter.hadError = false;
 
 			this.runPrompt(result);
 		});
@@ -76,18 +75,7 @@ class Lox {
 		let scanner = new Scanner(source);
 		let tokens = scanner.scanTokens();
 
-		return tokens.join('\n');
-	}
-
-	private static error(line: number, message: string) {
-		this.report(line, '', message);
-	}
-
-	private static report(line: number, where: string, message: string) {
-		let err = Chalk.bold.red(`[line ${line}] Error${where}: ${message}`);
-		console.log(err);
-
-		this.hadError = true;
+		return tokens.join('\n   ');
 	}
 }
 
