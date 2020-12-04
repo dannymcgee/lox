@@ -30,12 +30,11 @@ class Token {
 	}
 
 	toString(): string {
+		let value = `${this.lexeme} | ${TokenType[this.type]}`;
 		if (this.literal) {
-			return `${this.lexeme} : ${TokenType[this.type]} : [${
-				this.literal
-			}]`;
+			value += ` | [${this.literal}]`;
 		}
-		return `${this.lexeme} : ${TokenType[this.type]}`;
+		return value + ` | ${this.line}`;
 	}
 }
 
