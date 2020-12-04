@@ -31,9 +31,9 @@ class Token {
 
 	toString(): string {
 		if (this.literal) {
-			return `${this.lexeme} : ${TokenType[this.type]} : \`${
+			return `${this.lexeme} : ${TokenType[this.type]} : [${
 				this.literal
-			}\``;
+			}]`;
 		}
 		return `${this.lexeme} : ${TokenType[this.type]}`;
 	}
@@ -74,6 +74,9 @@ export class Scanner {
 					this.current - 1,
 				);
 				this.addToken(type, value);
+			} else if (type === TokenType.Number) {
+				let value = this.source.substring(this.start, this.current);
+				this.addToken(type, parseFloat(value));
 			} else {
 				this.addToken(type);
 			}
@@ -122,9 +125,15 @@ export class Scanner {
 			case '"': return this.string();
 
 			default:
+				if (this.isDigit(char)) return this.number();
+
 				ErrorReporter.error(this.line, 'Unexpected character.');
 				break;
 		}
+	}
+
+	private isDigit(char: string): boolean {
+		return /[0-9]/.test(char);
 	}
 
 	private string(): TokenType | undefined {
@@ -140,6 +149,15 @@ export class Scanner {
 		this.advance();
 
 		return TokenType.String;
+	}
+
+	private number(): TokenType {
+		while (this.isDigit(this.peek())) this.advance();
+		if (this.peek() === '.' && this.isDigit(this.peekNext())) {
+			this.advance();
+			while (this.isDigit(this.peek())) this.advance();
+		}
+		return TokenType.Number;
 	}
 
 	private advance(): string {
