@@ -30,7 +30,12 @@ class Token {
 	}
 
 	toString(): string {
-		return `${this.lexeme} : ${TokenType[this.type]} ${this.literal ?? ''}`;
+		if (this.literal) {
+			return `${this.lexeme} : ${TokenType[this.type]} : \`${
+				this.literal
+			}\``;
+		}
+		return `${this.lexeme} : ${TokenType[this.type]}`;
 	}
 }
 
@@ -62,7 +67,17 @@ export class Scanner {
 	private scanToken() {
 		let c = this.advance();
 		let type = this.identify(c);
-		if (type != null) this.addToken(type);
+		if (type != null) {
+			if (type === TokenType.String) {
+				let value = this.source.substring(
+					this.start + 1,
+					this.current - 1,
+				);
+				this.addToken(type, value);
+			} else {
+				this.addToken(type);
+			}
+		}
 	}
 
 	private identify(char: string): TokenType | undefined {
@@ -103,10 +118,28 @@ export class Scanner {
 				this.line++;
 				break;
 
+			// String literals
+			case '"': return this.string();
+
 			default:
 				ErrorReporter.error(this.line, 'Unexpected character.');
 				break;
 		}
+	}
+
+	private string(): TokenType | undefined {
+		while (this.peek() !== '"' && !this.atEnd()) {
+			if (this.peek() === '\n') this.line++;
+			this.advance();
+		}
+		if (this.atEnd()) {
+			ErrorReporter.error(this.line, 'Unterminated string.');
+			return;
+		}
+		// Consume the closing "
+		this.advance();
+
+		return TokenType.String;
 	}
 
 	private advance(): string {
