@@ -39,6 +39,25 @@ class Token {
 	}
 }
 
+const KEYWORDS: ReadonlyMap<string, TokenType> = new Map([
+	['and', TokenType.And],
+	['class', TokenType.Class],
+	['else', TokenType.Else],
+	['false', TokenType.False],
+	['for', TokenType.For],
+	['fn', TokenType.Fn],
+	['if', TokenType.If],
+	['nil', TokenType.Nil],
+	['or', TokenType.Or],
+	['print', TokenType.Print],
+	['return', TokenType.Return],
+	['super', TokenType.Super],
+	['this', TokenType.This],
+	['true', TokenType.True],
+	['var', TokenType.Var],
+	['while', TokenType.While],
+]);
+
 export class Scanner {
 	private readonly source: string;
 	private readonly tokens: Token[] = [];
@@ -55,7 +74,7 @@ export class Scanner {
 			this.start = this.current;
 			this.scanToken();
 		}
-		this.tokens.push(new Token(TokenType.EOF, '', null, this.line));
+		this.addToken(TokenType.EOF);
 
 		return this.tokens;
 	}
@@ -77,6 +96,13 @@ export class Scanner {
 			} else if (type === TokenType.Number) {
 				let value = this.source.substring(this.start, this.current);
 				this.addToken(type, parseFloat(value));
+			} else if (type === TokenType.Identifier) {
+				let value = this.source.substring(this.start, this.current);
+				if (KEYWORDS.has(value)) {
+					this.addToken(KEYWORDS.get(value));
+				} else {
+					this.addToken(type);
+				}
 			} else {
 				this.addToken(type);
 			}
@@ -126,6 +152,7 @@ export class Scanner {
 
 			default:
 				if (this.isDigit(char)) return this.number();
+				if (this.isAlpha(char)) return this.identifier();
 
 				ErrorReporter.error(this.line, 'Unexpected character.');
 				break;
@@ -134,6 +161,12 @@ export class Scanner {
 
 	private isDigit(char: string): boolean {
 		return /[0-9]/.test(char);
+	}
+	private isAlpha(char: string): boolean {
+		return /[_a-zA-Z]/.test(char);
+	}
+	private isAlphaNumeric(char: string): boolean {
+		return this.isAlpha(char) || this.isDigit(char);
 	}
 
 	private string(): TokenType | undefined {
@@ -160,6 +193,12 @@ export class Scanner {
 		return TokenType.Number;
 	}
 
+	private identifier(): TokenType {
+		while (this.isAlphaNumeric(this.peek())) this.advance();
+
+		return TokenType.Identifier;
+	}
+
 	private advance(): string {
 		return this.source.charAt(this.current++);
 	}
@@ -167,6 +206,11 @@ export class Scanner {
 	private peek(): string {
 		if (this.atEnd()) return '\0';
 		return this.source.charAt(this.current);
+	}
+
+	private peekNext(): string {
+		if (this.current + 1 >= this.source.length) return '\0';
+		return this.source.charAt(this.current + 1);
 	}
 
 	private match(expected: string): boolean {
