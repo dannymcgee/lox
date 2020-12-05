@@ -31,6 +31,9 @@
 		},
 		"ts": {
 			"tags": []
+		},
+		"tools": {
+			"tags": []
 		}
 	},
 	"workspaceLayout": {
