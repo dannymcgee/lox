@@ -2,12 +2,11 @@ import * as Path from 'path';
 import * as FS from 'fs-extra';
 
 export class AstGenerator {
-	static main(...args: string[]): void {
-		if (args.length > 1) {
-			console.log('Usage: generate <output directory>');
-			process.exit(64);
-		}
-		let outputDir = args[0] ?? 'packages/ts/src/lib/types';
+	static dryRun: boolean;
+
+	static main(args: { path?: string; dryRun?: boolean }): void {
+		let outputDir = args.path ?? 'packages/ts/src/lib/types';
+		this.dryRun = args.dryRun ?? false;
 
 		// prettier-ignore
 		this.defineAst(outputDir, 'Expr', [
@@ -39,33 +38,58 @@ export class AstGenerator {
 			``,
 		].join('\n');
 
-		// prettier-ignore
-		fileContent += types.reduce((accum, type) => {
+		fileContent += this.defineVisitor(types, baseName);
+		fileContent += this.defineTypes(types, baseName);
+
+		if (this.dryRun) console.log('fileContent:\n', fileContent);
+		else FS.writeFileSync(path, fileContent);
+	}
+
+	// prettier-ignore
+	private static defineVisitor(types: string[], base: string): string {
+		return [
+			`export interface Visitor<R> {`,
+
+			`}`,
+		].join('\n') + '\n\n';
+	}
+
+	// prettier-ignore
+	private static defineTypes(types: string[], base: string): string {
+		return types.reduce((accum, type) => {
 			let [className, fld] = type.split('|').map((str) => str.trim());
-			let fields = fld
-				.split(',').map((str) => str.trim())
-				.map((field) => field
-					.split(':').map((str) => str.trim()));
+			let fields = generateFields(fld);
 
 			return accum + [
-				`export class ${className} extends ${baseName} {`,
-				fields.map(([name, type]) =>
+				`export class ${className} extends ${base} {`,
+				fields.map(({ name, type }) =>
 					`\treadonly ${name}: ${type};`).join('\n'),
 				``,
 				`\tconstructor(${
-						fields.map(([name, type]) =>
+						fields.map(({ name, type }) =>
 							`${name}: ${type}`).join(', ')
 					}) {`,
 				`\t\tsuper();`,
-				fields.map(([name]) =>
+				fields.map(({ name }) =>
 					`\t\tthis.${name} = ${name};`).join('\n'),
 				`\t}`,
 				`}`
 			].join('\n') + '\n\n';
 		}, '');
-
-		FS.writeFileSync(path, fileContent);
 	}
+}
+
+/**
+ * @param input String in the format: "name: type, name: type..."
+ */
+function generateFields(input: string): { name: string; type: string }[] {
+	return input
+		.split(',')
+		.map((field) => field.trim().split(':'))
+		.map(([name, type]) => ({
+			name: name.trim(),
+			type: type.trim(),
+		}));
 }
 
 function camelToKebabCase(text: string): string {

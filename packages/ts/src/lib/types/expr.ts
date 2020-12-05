@@ -5,6 +5,9 @@ import { Token } from './token'
 
 export abstract class Expr {}
 
+export interface Visitor<R> {
+}
+
 export class Binary extends Expr {
 	readonly left: Expr;
 	readonly operator: Token;

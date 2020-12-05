@@ -68,7 +68,7 @@
 				"start": {
 					"builder": "@nrwl/workspace:run-commands",
 					"options": {
-						"command": "yarn run ts-node --project packages/ts/tsconfig.lib.json packages/ts/src/main.ts {args.file}"
+						"command": "yarn run ts-node -r tsconfig-paths/register --project packages/ts/tsconfig.lib.json packages/ts/src/main.ts {args.file}"
 					}
 				}
 			}
@@ -95,7 +95,28 @@
 				"generate": {
 					"builder": "@nrwl/workspace:run-commands",
 					"options": {
-						"command": "yarn run ts-node --project packages/tools/tsconfig.lib.json packages/tools/src/main.ts {args.path}"
+						"command": "yarn run ts-node -r tsconfig-paths/register --project packages/tools/tsconfig.lib.json packages/tools/src/main.ts {args.path} {args.dryRun}"
+					}
+				}
+			}
+		},
+		"cli-tools": {
+			"root": "packages/cli-tools",
+			"sourceRoot": "packages/cli-tools/src",
+			"projectType": "library",
+			"schematics": {},
+			"architect": {
+				"lint": {
+					"builder": "@nrwl/linter:eslint",
+					"options": {
+						"lintFilePatterns": ["packages/cli-tools/**/*.ts"]
+					}
+				},
+				"test": {
+					"builder": "@nrwl/jest:jest",
+					"options": {
+						"jestConfig": "packages/cli-tools/jest.config.js",
+						"passWithNoTests": true
 					}
 				}
 			}

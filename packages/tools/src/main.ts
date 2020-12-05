@@ -1,9 +1,10 @@
+import { parse } from '@lox/cli-tools';
 import { AstGenerator } from './lib/generate-ast';
 
-let normalized = process.argv
-	.slice(2)
-	.map((arg) => arg?.trim())
-	.filter(Boolean)
-	.filter((arg) => arg !== 'undefined');
+let [path, dryRun] = process.argv.slice(2);
+let normalized = {
+	path: parse(String, path),
+	dryRun: parse(Boolean, dryRun),
+};
 
-AstGenerator.main(...normalized);
+AstGenerator.main(normalized);

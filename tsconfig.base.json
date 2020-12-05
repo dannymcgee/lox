@@ -18,7 +18,8 @@
 		"paths": {
 			"vscode-lox": ["packages/vscode-lox/src/index.ts"],
 			"@lox/ts": ["packages/ts/src/index.ts"],
-			"@lox/tools": ["packages/tools/src/index.ts"]
+			"@lox/tools": ["packages/tools/src/index.ts"],
+			"@lox/cli-tools": ["packages/cli-tools/src/index.ts"]
 		}
 	},
 	"exclude": ["node_modules", "tmp"]
