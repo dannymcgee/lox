@@ -50,16 +50,16 @@ class Lox {
 	}
 
 	private static runPrompt(previousResult?: string) {
-		console.clear();
+		ErrorReporter.hadError = false;
+
+		if (!previousResult) console.clear();
 		console.log(Chalk.bold('Enter some Lox code to run it'));
-		if (previousResult) {
-			this.print(previousResult);
-		}
+		if (previousResult) this.print(previousResult);
 		console.log('');
 
 		this.rl.question(Chalk.bold.blue('> '), (input) => {
+			console.clear();
 			let result = this.run(input);
-			ErrorReporter.hadError = false;
 
 			this.runPrompt(result);
 		});
