@@ -15,7 +15,16 @@ import {
 	Unary,
 	Variable,
 } from './types';
-import { Block, Expression, If, Print, Stmt, Var, While } from './types/stmt';
+import {
+	Block,
+	Expression,
+	Fn,
+	If,
+	Print,
+	Stmt,
+	Var,
+	While,
+} from './types/stmt';
 
 namespace Operators {
 	export const EQUALITY = [TokenType.BangEqual, TokenType.EqualEqual];
@@ -69,6 +78,7 @@ export class Parser {
 
 	private declaration(): Stmt {
 		try {
+			if (this.match(TokenType.Fn)) return this.fnDeclaration('function');
 			if (this.match(TokenType.Var)) return this.varDeclaration();
 			return this.statement();
 		} catch (err) {
@@ -78,6 +88,35 @@ export class Parser {
 			}
 			throw err;
 		}
+	}
+	private fnDeclaration(kind: string): Fn {
+		let name = this.consume(TokenType.Identifier, `Expected ${kind} name.`);
+
+		// Params
+		this.consume(TokenType.LeftParen, `Expected '(' after ${kind} name.`);
+		let params: Token[] = [];
+		if (!this.check(TokenType.RightParen)) {
+			do {
+				if (params.length >= 255)
+					this.error(
+						this.peek(),
+						`Cannot have more than 255 ${kind} parameters.`,
+					);
+				params.push(
+					this.consume(
+						TokenType.Identifier,
+						`Expected parameter name.`,
+					),
+				);
+			} while (this.match(TokenType.Comma));
+		}
+		this.consume(TokenType.RightParen, `Expected ')' after parameters.`);
+
+		// Body
+		this.consume(TokenType.LeftBrace, `Expected '{' before ${kind} body.`);
+		let body: Stmt[] = this.block();
+
+		return new Fn(name, params, body);
 	}
 	private varDeclaration(): Stmt {
 		let name = this.consume(

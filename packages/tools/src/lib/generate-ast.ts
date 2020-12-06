@@ -26,6 +26,7 @@ export class AstGenerator {
 		this.defineAst(outputDir, 'Stmt', [
 			`Block      | statements: Stmt[]`,
 			`Expression | expression: Expr`,
+			`Fn         | name: Token, params: Token[], body: Stmt[]`,
 			`If         | condition: Expr, thenBranch: Stmt, elseBranch: Stmt`,
 			`Print      | expression: Expr`,
 			`Var        | name: Token, initializer: Expr`,

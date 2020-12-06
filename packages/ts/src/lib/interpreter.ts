@@ -3,6 +3,7 @@ import * as Chalk from 'chalk';
 import { Environment } from './environment';
 
 import { ErrorReporter } from './error-reporter';
+import { FnObject } from './fn-object';
 import { TokenType, Token, isInvokable, Invokable } from './types';
 import * as Expr from './types/expr';
 import * as Stmt from './types/stmt';
@@ -72,6 +73,10 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 	visitExpressionStmt(stmt: Stmt.Expression): void {
 		this.evaluate(stmt.expression);
 	}
+	visitFnStmt(stmt: Stmt.Fn): void {
+		let fn = new FnObject(stmt);
+		this.env.define(stmt.name.lexeme, fn);
+	}
 	visitIfStmt(stmt: Stmt.If): void {
 		if (this.isTruthy(this.evaluate(stmt.condition)))
 			this.execute(stmt.thenBranch);
@@ -92,7 +97,7 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 	private execute(stmt: Stmt.Stmt): void {
 		stmt.accept(this);
 	}
-	private executeBlock(statements: Stmt.Stmt[], enclosing: Environment) {
+	executeBlock(statements: Stmt.Stmt[], enclosing: Environment) {
 		let previousEnv = this.env;
 		try {
 			this.env = enclosing;
