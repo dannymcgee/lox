@@ -33,7 +33,9 @@ export class AstGenerator {
 			``,
 			`import { Token } from './token'`,
 			``,
-			`export abstract class ${baseName} {}`,
+			`export abstract class ${baseName} {`,
+			`	abstract accept<R>(visitor: Visitor<R>): R;`,
+			`}`,
 			``,
 			``,
 		].join('\n');
@@ -49,7 +51,12 @@ export class AstGenerator {
 	private static defineVisitor(types: string[], base: string): string {
 		return [
 			`export interface Visitor<R> {`,
-
+			types.map((type) => {
+				let { className } = generateClass(type);
+				return (
+			`	visit${className}${base}(${base.toLowerCase()}: ${className}): R;`
+				);
+			}).join('\n'),
 			`}`,
 		].join('\n') + '\n\n';
 	}
@@ -57,32 +64,55 @@ export class AstGenerator {
 	// prettier-ignore
 	private static defineTypes(types: string[], base: string): string {
 		return types.reduce((accum, type) => {
-			let [className, fld] = type.split('|').map((str) => str.trim());
-			let fields = generateFields(fld);
+			let { className, fields } = generateClass(type);
 
 			return accum + [
 				`export class ${className} extends ${base} {`,
 				fields.map(({ name, type }) =>
-					`\treadonly ${name}: ${type};`).join('\n'),
+				`	readonly ${name}: ${type};`).join('\n'),
 				``,
-				`\tconstructor(${
+				`	constructor(${
 						fields.map(({ name, type }) =>
 							`${name}: ${type}`).join(', ')
 					}) {`,
-				`\t\tsuper();`,
+				`		super();`,
 				fields.map(({ name }) =>
-					`\t\tthis.${name} = ${name};`).join('\n'),
-				`\t}`,
+				`		this.${name} = ${name};`).join('\n'),
+				`	}`,
+				``,
+				`	accept<R>(visitor: Visitor<R>): R {`,
+				`		return visitor.visit${className}${base}(this);`,
+				`	}`,
 				`}`
 			].join('\n') + '\n\n';
 		}, '');
 	}
 }
 
+interface Field {
+	name: string;
+	type: string;
+}
+interface Class {
+	className: string;
+	fields: Field[];
+}
+
+/**
+ * @param input String in the format: "<className> | <fieldName>: <fieldType>, <fieldName>: <fieldType>..."
+ */
+function generateClass(input: string): Class {
+	let [className, fields] = input.split('|').map((str) => str.trim());
+	return {
+		className,
+		fields: generateFields(fields),
+	};
+}
+
 /**
  * @param input String in the format: "name: type, name: type..."
  */
-function generateFields(input: string): { name: string; type: string }[] {
+function generateFields(input: string): Field[] {
 	return input
 		.split(',')
 		.map((field) => field.trim().split(':'))
