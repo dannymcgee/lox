@@ -41,6 +41,11 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 		stmt.accept(this);
 	}
 
+	visitAssignExpr(expr: Expr.Assign): Object {
+		let value = this.evaluate(expr.value);
+		this.env.assign(expr.name, value);
+		return value;
+	}
 	visitLiteralExpr(expr: Expr.Literal): Object {
 		return expr.value;
 	}

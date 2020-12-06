@@ -7,6 +7,15 @@ export class Environment {
 	define(name: string, value: Object): void {
 		this.values.set(name, value);
 	}
+	assign(name: Token, value: Object): void {
+		if (!this.values.has(name.lexeme))
+			throw new RuntimeError(
+				name,
+				`Undefined variable '${name.lexeme}'.`,
+			);
+
+		this.values.set(name.lexeme, value);
+	}
 	get(name: Token): Object {
 		if (!this.values.has(name.lexeme))
 			throw new RuntimeError(

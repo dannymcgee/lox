@@ -3,6 +3,7 @@ import * as Chalk from 'chalk';
 
 import { ErrorReporter } from './error-reporter';
 import {
+	Assign,
 	Binary,
 	Expr,
 	Grouping,
@@ -108,7 +109,21 @@ export class Parser {
 	}
 
 	private expression(): Expr {
-		return this.equality();
+		return this.assignment();
+	}
+	private assignment(): Expr {
+		let expr = this.equality();
+		if (this.match(TokenType.Equal)) {
+			let equals = this.previous();
+			let value = this.assignment();
+
+			if (expr instanceof Variable) {
+				let name = expr.name;
+				return new Assign(name, value);
+			}
+			this.error(equals, 'Invalid assignment target.');
+		}
+		return expr;
 	}
 	private equality(): Expr {
 		return this.binary(Operators.EQUALITY, this.comparison);

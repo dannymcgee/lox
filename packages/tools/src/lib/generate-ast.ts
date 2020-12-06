@@ -10,6 +10,7 @@ export class AstGenerator {
 
 		// prettier-ignore
 		this.defineAst(outputDir, 'Expr', [
+			`Assign   | name: Token, value: Expr`,
 			`Binary   | left: Expr, operator: Token, right: Expr`,
 			`Grouping | expression: Expr`,
 			`Literal  | value: any`,
