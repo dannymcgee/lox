@@ -10,8 +10,9 @@ import {
 	Token,
 	TokenType,
 	Unary,
+	Variable,
 } from './types';
-import { Expression, Print, Stmt } from './types/stmt';
+import { Expression, Print, Stmt, Var } from './types/stmt';
 
 namespace Operators {
 	export const EQUALITY = [TokenType.BangEqual, TokenType.EqualEqual];
@@ -58,9 +59,37 @@ export class Parser {
 
 	parse(): readonly Stmt[] | null {
 		let statements: Stmt[] = [];
-		while (!this.atEnd()) statements.push(this.statement());
+		while (!this.atEnd()) statements.push(this.declaration());
 
 		return statements;
+	}
+
+	private declaration(): Stmt {
+		try {
+			if (this.match(TokenType.Var)) return this.varDeclaration();
+			return this.statement();
+		} catch (err) {
+			if (err instanceof ParseError) {
+				this.synchronize();
+				return;
+			}
+			throw err;
+		}
+	}
+	private varDeclaration(): Stmt {
+		let name = this.consume(
+			TokenType.Identifier,
+			'Expected a variable name.',
+		);
+		let initializer = this.match(TokenType.Equal)
+			? this.expression()
+			: null;
+		this.consume(
+			TokenType.Semicolon,
+			`Expected ';' after variable declaration.`,
+		);
+
+		return new Var(name, initializer);
 	}
 
 	private statement(): Stmt {
@@ -109,9 +138,12 @@ export class Parser {
 		if (this.match(TokenType.Nil)) return new Literal(null);
 
 		// Literal string / number
-		if (this.match(TokenType.Number, TokenType.String)) {
+		if (this.match(TokenType.Number, TokenType.String))
 			return new Literal(this.previous().literal);
-		}
+
+		// Variable
+		if (this.match(TokenType.Identifier))
+			return new Variable(this.previous());
 
 		// Paren group
 		if (this.match(TokenType.LeftParen)) {

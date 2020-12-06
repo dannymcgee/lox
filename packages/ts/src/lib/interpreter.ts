@@ -1,4 +1,5 @@
 import * as Chalk from 'chalk';
+import { Environment } from './environment';
 
 import { ErrorReporter } from './error-reporter';
 import { TokenType, Token } from './types';
@@ -6,6 +7,8 @@ import * as Expr from './types/expr';
 import * as Stmt from './types/stmt';
 
 export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
+	private env = new Environment();
+
 	interpret(statements: readonly Stmt.Stmt[]): void {
 		try {
 			for (let statement of statements) this.execute(statement);
@@ -18,6 +21,14 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 		}
 	}
 
+	visitVarStmt(stmt: Stmt.Var): void {
+		// prettier-ignore
+		let value = stmt.initializer != null
+			? this.evaluate(stmt.initializer)
+			: null;
+
+		this.env.define(stmt.name.lexeme, value);
+	}
 	visitExpressionStmt(stmt: Stmt.Expression): void {
 		this.evaluate(stmt.expression);
 	}
@@ -46,6 +57,9 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 				return -(right as number);
 			}
 		return null;
+	}
+	visitVariableExpr(expr: Expr.Variable): Object {
+		return this.env.get(expr.name);
 	}
 	visitBinaryExpr(expr: Expr.Binary): Object {
 		let left = this.evaluate(expr.left) as any;
@@ -135,7 +149,7 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 	}
 }
 
-class RuntimeError extends Error {
+export class RuntimeError extends Error {
 	readonly token: Token;
 	constructor(token: Token, message: string) {
 		super(message);
@@ -149,6 +163,6 @@ export function formatValue(result: Object): string {
 	if (typeof result === 'boolean') return Chalk.magenta(result.toString());
 	if (result == null) {
 		if (ErrorReporter.hadError) return Chalk.red('Error');
-		return Chalk.magenta('null');
+		return Chalk.magenta('nil');
 	}
 }

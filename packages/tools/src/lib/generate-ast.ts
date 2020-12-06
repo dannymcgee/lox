@@ -14,6 +14,7 @@ export class AstGenerator {
 			`Grouping | expression: Expr`,
 			`Literal  | value: any`,
 			`Unary    | operator: Token, right: Expr`,
+			`Variable | name: Token`,
 		], [
 			`import { Token } from './token';`,
 		]);
@@ -22,8 +23,10 @@ export class AstGenerator {
 		this.defineAst(outputDir, 'Stmt', [
 			`Expression | expression: Expr`,
 			`Print      | expression: Expr`,
+			`Var        | name: Token, initializer: Expr`,
 		], [
 			`import { Expr } from './expr';`,
+			`import { Token } from './token';`,
 		]);
 	}
 
