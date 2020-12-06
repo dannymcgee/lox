@@ -13,7 +13,7 @@ import {
 	Unary,
 	Variable,
 } from './types';
-import { Expression, Print, Stmt, Var } from './types/stmt';
+import { Block, Expression, Print, Stmt, Var } from './types/stmt';
 
 namespace Operators {
 	export const EQUALITY = [TokenType.BangEqual, TokenType.EqualEqual];
@@ -95,7 +95,15 @@ export class Parser {
 
 	private statement(): Stmt {
 		if (this.match(TokenType.Print)) return this.printStatement();
+		if (this.match(TokenType.LeftBrace)) return new Block(this.block());
 		return this.expressionStatement();
+	}
+	private block(): Stmt[] {
+		let statements: Stmt[] = [];
+		while (!this.check(TokenType.RightBrace) && !this.atEnd())
+			statements.push(this.declaration());
+		this.consume(TokenType.RightBrace, `Expected '}' after block.`);
+		return statements;
 	}
 	private printStatement(): Stmt {
 		let value = this.expression();

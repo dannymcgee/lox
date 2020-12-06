@@ -36,9 +36,21 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 		let value = this.evaluate(stmt.expression);
 		console.log(formatValue(value));
 	}
+	visitBlockStmt(stmt: Stmt.Block): void {
+		this.executeBlock(stmt.statements, new Environment(this.env));
+	}
 
 	private execute(stmt: Stmt.Stmt): void {
 		stmt.accept(this);
+	}
+	private executeBlock(statements: Stmt.Stmt[], enclosing: Environment) {
+		let previousEnv = this.env;
+		try {
+			this.env = enclosing;
+			for (let statement of statements) this.execute(statement);
+		} finally {
+			this.env = previousEnv;
+		}
 	}
 
 	visitAssignExpr(expr: Expr.Assign): Object {
