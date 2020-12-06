@@ -1,5 +1,5 @@
 import { ErrorReporter } from './error-reporter';
-import { Token, TokenType } from './types';
+import { Line, Token, TokenType } from './types';
 
 const KEYWORDS: ReadonlyMap<string, TokenType> = new Map([
 	['and', TokenType.And],
@@ -23,7 +23,9 @@ const KEYWORDS: ReadonlyMap<string, TokenType> = new Map([
 export class Scanner {
 	private readonly source: string;
 	private readonly tokens: Token[] = [];
+	private readonly lines: Line[] = [new Line(1, 0)];
 	private start = 0;
+	private lineStart = 0;
 	private current = 0;
 	private line = 1;
 
@@ -31,14 +33,17 @@ export class Scanner {
 		this.source = source.toString();
 	}
 
-	scanTokens(): readonly Token[] {
+	scan(): { tokens: readonly Token[]; lines: readonly Line[] } {
 		while (!this.atEnd()) {
 			this.start = this.current;
 			this.scanToken();
 		}
 		this.addToken(TokenType.EOF);
 
-		return this.tokens;
+		return {
+			tokens: this.tokens,
+			lines: this.lines,
+		};
 	}
 
 	private atEnd(): boolean {
@@ -106,18 +111,24 @@ export class Scanner {
 				break; // Ignore whitespace
 
 			case '\n':
-				this.line++;
+				this.advanceLine();
 				break;
 
 			// String literals
 			case '"': return this.string();
 
-			default:
+			default: {
 				if (this.isDigit(char)) return this.number();
 				if (this.isAlpha(char)) return this.identifier();
 
-				ErrorReporter.error(this.line, 'Unexpected character.');
+				this.finalizeLine();
+				let token = this.addToken(TokenType.Unknown);
+				ErrorReporter.error(
+					token,
+					'Unexpected character.'
+				);
 				break;
+			}
 		}
 	}
 
@@ -133,11 +144,13 @@ export class Scanner {
 
 	private string(): TokenType | undefined {
 		while (this.peek() !== '"' && !this.atEnd()) {
-			if (this.peek() === '\n') this.line++;
+			if (this.peek() === '\n') this.advanceLine();
 			this.advance();
 		}
 		if (this.atEnd()) {
-			ErrorReporter.error(this.line, 'Unterminated string.');
+			this.finalizeLine();
+			let token = this.addToken(TokenType.String);
+			ErrorReporter.error(token, 'Unterminated string');
 			return;
 		}
 		// Consume the closing "
@@ -183,8 +196,31 @@ export class Scanner {
 		return true;
 	}
 
-	private addToken(type: TokenType, literal?: any) {
+	private finalizeLine(): Line {
+		let line = this.lines[this.line - 1];
+		let lineEnd = this.source.indexOf('\n', this.lineStart);
+		if (lineEnd === -1) lineEnd = this.source.length - 1;
+		let content = this.source.substring(this.lineStart, lineEnd);
+		line.end = lineEnd;
+		line.content = content;
+
+		return line;
+	}
+
+	private advanceLine(): void {
+		this.finalizeLine();
+		this.line++;
+		this.lineStart = this.current;
+		this.lines.push(new Line(this.line, this.current));
+	}
+
+	private addToken(type: TokenType, literal?: any): Token {
 		let text = this.source.substring(this.start, this.current);
-		this.tokens.push(new Token(type, text, literal, this.line));
+		let line = this.lines[this.line - 1];
+
+		let token = new Token(type, text, literal, line, this.start);
+		this.tokens.push(token);
+
+		return token;
 	}
 }

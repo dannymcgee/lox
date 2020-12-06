@@ -97,7 +97,7 @@ class Lox {
 	private static run(source: Buffer | string): string {
 		let output: string;
 		try {
-			let tokens = new Scanner(source).scanTokens();
+			let { tokens } = new Scanner(source).scan();
 			let ast = new Parser(tokens).parse();
 			// return formatAst(ast).replace(/\n/g, '\n   ');
 

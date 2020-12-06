@@ -1,5 +1,6 @@
 import * as Util from 'util';
 import * as Chalk from 'chalk';
+import { Line } from './line';
 
 // prettier-ignore
 export enum TokenType {
@@ -13,6 +14,8 @@ export enum TokenType {
 	// Keywords
 	And, Class, Else, False, Fn, For, If, Nil, Or, Print, Return, Super, This,
 	True, Var, While,
+	// Error
+	Unknown,
 	// Fin
 	EOF,
 }
@@ -21,13 +24,21 @@ export class Token {
 	readonly type: TokenType;
 	readonly lexeme: string;
 	readonly literal: any;
-	readonly line: number;
+	readonly line: Line;
+	readonly start: number;
 
-	constructor(type: TokenType, lexeme: string, literal: any, line: number) {
+	constructor(
+		type: TokenType,
+		lexeme: string,
+		literal: any,
+		line: Line,
+		start: number,
+	) {
 		this.type = type;
 		this.lexeme = lexeme;
 		this.literal = literal;
 		this.line = line;
+		this.start = start;
 	}
 
 	toString(): string {
