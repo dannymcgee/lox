@@ -1,11 +1,16 @@
 // print statement
 print "Hello, world!";
+print true;
+print 2 + 1;
+print "foo" + "bar";
+print "The answer" == 42;
+print nil;
 
 // expression statement
 "some expression";
 
 // block statement
-{
-	print "One statement";
-	print "Two statements";
-}
+// {
+// 	print "One statement";
+// 	print "Two statements";
+// }

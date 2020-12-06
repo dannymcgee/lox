@@ -1,22 +1,14 @@
 import * as Chalk from 'chalk';
 
 import { ErrorReporter } from './error-reporter';
-import {
-	Binary,
-	Expr,
-	Grouping,
-	Literal,
-	Token,
-	TokenType,
-	Unary,
-	Visitor,
-} from './types';
+import { TokenType, Token } from './types';
+import * as Expr from './types/expr';
+import * as Stmt from './types/stmt';
 
-export class Interpreter implements Visitor<Object> {
-	interpret(expression: Expr): Object {
-		let result: Object;
+export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
+	interpret(statements: readonly Stmt.Stmt[]): void {
 		try {
-			result = this.evaluate(expression);
+			for (let statement of statements) this.execute(statement);
 		} catch (err) {
 			if (err instanceof RuntimeError) {
 				ErrorReporter.error(err.token, err.message);
@@ -24,15 +16,27 @@ export class Interpreter implements Visitor<Object> {
 			}
 			throw err;
 		}
-		return result;
 	}
-	visitLiteralExpr(expr: Literal): Object {
+
+	visitExpressionStmt(stmt: Stmt.Expression): void {
+		this.evaluate(stmt.expression);
+	}
+	visitPrintStmt(stmt: Stmt.Print): void {
+		let value = this.evaluate(stmt.expression);
+		console.log(formatValue(value));
+	}
+
+	private execute(stmt: Stmt.Stmt): void {
+		stmt.accept(this);
+	}
+
+	visitLiteralExpr(expr: Expr.Literal): Object {
 		return expr.value;
 	}
-	visitGroupingExpr(expr: Grouping): Object {
+	visitGroupingExpr(expr: Expr.Grouping): Object {
 		return this.evaluate(expr.expression);
 	}
-	visitUnaryExpr(expr: Unary): Object {
+	visitUnaryExpr(expr: Expr.Unary): Object {
 		let right = this.evaluate(expr.right);
 		// prettier-ignore
 		switch (expr.operator.type) {
@@ -43,7 +47,7 @@ export class Interpreter implements Visitor<Object> {
 			}
 		return null;
 	}
-	visitBinaryExpr(expr: Binary): Object {
+	visitBinaryExpr(expr: Expr.Binary): Object {
 		let left = this.evaluate(expr.left) as any;
 		let right = this.evaluate(expr.right) as any;
 
@@ -82,7 +86,7 @@ export class Interpreter implements Visitor<Object> {
 		return null;
 	}
 
-	private evaluate(expr: Expr): Object {
+	private evaluate(expr: Expr.Expr): Object {
 		return expr.accept(this);
 	}
 
@@ -139,7 +143,7 @@ class RuntimeError extends Error {
 	}
 }
 
-export function formatResult(result: Object): string {
+export function formatValue(result: Object): string {
 	if (typeof result === 'string') return Chalk.bold.green(result);
 	if (typeof result === 'number') return Chalk.bold.cyan(result.toString());
 	if (typeof result === 'boolean') return Chalk.magenta(result.toString());

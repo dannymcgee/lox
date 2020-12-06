@@ -11,6 +11,7 @@ import {
 	TokenType,
 	Unary,
 } from './types';
+import { Expression, Print, Stmt } from './types/stmt';
 
 namespace Operators {
 	export const EQUALITY = [TokenType.BangEqual, TokenType.EqualEqual];
@@ -55,13 +56,26 @@ export class Parser {
 		this.tokens = tokens;
 	}
 
-	parse(): Expr | null {
-		try {
-			return this.expression();
-		} catch (err) {
-			if (err instanceof ParseError) return null;
-			throw err;
-		}
+	parse(): readonly Stmt[] | null {
+		let statements: Stmt[] = [];
+		while (!this.atEnd()) statements.push(this.statement());
+
+		return statements;
+	}
+
+	private statement(): Stmt {
+		if (this.match(TokenType.Print)) return this.printStatement();
+		return this.expressionStatement();
+	}
+	private printStatement(): Stmt {
+		let value = this.expression();
+		this.consume(TokenType.Semicolon, `Expected ';' after value.`);
+		return new Print(value);
+	}
+	private expressionStatement(): Stmt {
+		let expr = this.expression();
+		this.consume(TokenType.Semicolon, `Expected ';' after expression.`);
+		return new Expression(expr);
 	}
 
 	private expression(): Expr {

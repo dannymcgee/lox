@@ -1,10 +1,10 @@
-# precedence:
-# NAME           OPERATORS    ASSOCIATES
-# Equality       == !=        Left
-# Comparison     > >= < <=    Left
-# Term           - +          Left
-# Factor         / *          Left
-# Unary          ! -          Right
+program    -> statement* EOF ;
+
+statement  -> exprStmt
+            | printStmt ;
+
+exprStmt   -> expression ";" ;
+printStmt  -> "print" expression ";" ;
 
 expression -> equality
 equality   -> comparison (( '!=' | '==' ) comparison )* ;
@@ -15,3 +15,11 @@ unary      -> ( '!' | '-' ) unary
             | primary ;
 primary    -> NUMBER | STRING | 'true' | 'false' | 'nil'
             | '(' expression ')' ;
+
+# precedence:
+# NAME           OPERATORS    ASSOCIATES
+# Equality       == !=        Left
+# Comparison     > >= < <=    Left
+# Term           - +          Left
+# Factor         / *          Left
+# Unary          ! -          Right

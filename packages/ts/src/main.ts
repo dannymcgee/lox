@@ -21,8 +21,8 @@ Util.inspect.styles = {
 import { Scanner } from './lib/scanner';
 import { ErrorReporter } from './lib/error-reporter';
 import { Parser } from './lib/parser';
+import { Interpreter } from './lib/interpreter';
 import { formatAst } from './lib/debug';
-import { formatResult, Interpreter } from './lib/interpreter';
 
 class Lox {
 	static main(args: string[]): void {
@@ -99,9 +99,9 @@ class Lox {
 		try {
 			let tokens = new Scanner(source).scanTokens();
 			let ast = new Parser(tokens).parse();
-			let result = this.interpreter.interpret(ast);
+			this.interpreter.interpret(ast);
 
-			output = formatResult(result);
+			output = Chalk.bold.inverse.greenBright(' DONE ');
 		} catch (err) {
 			return Chalk.red('<Error>');
 		}
