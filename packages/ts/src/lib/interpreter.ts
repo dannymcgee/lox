@@ -1,14 +1,53 @@
+import * as Util from 'util';
 import * as Chalk from 'chalk';
 import { Environment } from './environment';
 
-import { formatAst } from './debug';
 import { ErrorReporter } from './error-reporter';
-import { TokenType, Token } from './types';
+import { TokenType, Token, isInvokable, Invokable } from './types';
 import * as Expr from './types/expr';
 import * as Stmt from './types/stmt';
 
 export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
-	private env = new Environment();
+	readonly globals = new Environment();
+	private env = this.globals;
+
+	constructor() {
+		this.globals.define(
+			'clock',
+			new (class implements Invokable {
+				arity(): number {
+					return 0;
+				}
+				invoke(interpreter: Interpreter, ...args: Object[]): Object {
+					return new Date().getTime();
+				}
+				toString(): string {
+					return '<native fn>';
+				}
+			})(),
+		);
+		this.globals.define(
+			'str',
+			new (class implements Invokable {
+				arity(): number {
+					return 1;
+				}
+				invoke(interpreter: Interpreter, ...args: Object[]): string {
+					let obj = args[0];
+					if (typeof obj === 'number') return obj.toString(10);
+					else if (
+						'toString' in obj &&
+						typeof obj.toString === 'function'
+					)
+						return obj.toString();
+					return `${obj}`;
+				}
+				toString(): string {
+					return '<native fn>';
+				}
+			})(),
+		);
+	}
 
 	interpret(statements: readonly Stmt.Stmt[]): void {
 		try {
@@ -132,6 +171,21 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 			case TokenType.EqualEqual: return this.isEqual(left, right);
 		}
 		return null;
+	}
+	visitCallExpr(expr: Expr.Call): Object {
+		let callee = this.evaluate(expr.callee);
+		let args: Object[] = expr.args.map((arg) => this.evaluate(arg));
+
+		if (isInvokable(callee)) {
+			let arity = callee.arity();
+			if (args.length !== arity)
+				throw new RuntimeError(
+					expr.paren,
+					`Expected ${arity} arguments but received ${args.length}.`,
+				);
+			return callee.invoke(this, ...args);
+		}
+		throw new RuntimeError(expr.paren, `Expression is not invokable.`);
 	}
 
 	private evaluate(expr: Expr.Expr): Object {

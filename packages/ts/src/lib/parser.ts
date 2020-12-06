@@ -5,6 +5,7 @@ import { ErrorReporter } from './error-reporter';
 import {
 	Assign,
 	Binary,
+	Call,
 	Expr,
 	Grouping,
 	Literal as _Literal,
@@ -214,7 +215,33 @@ export class Parser {
 
 			return new Unary(operator, right);
 		}
-		return this.primary();
+		return this.call();
+	}
+	private call(): Expr {
+		let expr = this.primary();
+		while (true) {
+			if (this.match(TokenType.LeftParen)) expr = this.finishCall(expr);
+			else break;
+		}
+		return expr;
+	}
+	finishCall(callee: Expr): Expr {
+		let args: Expr[] = [];
+		if (!this.check(TokenType.RightParen)) {
+			do {
+				if (args.length >= 255)
+					this.error(
+						this.peek(),
+						`Cannot have more than 255 function arguments.`,
+					);
+				args.push(this.expression());
+			} while (this.match(TokenType.Comma));
+		}
+		let paren = this.consume(
+			TokenType.RightParen,
+			`Expected ')' after arguments.`,
+		);
+		return new Call(callee, paren, args);
 	}
 	private primary(): Expr {
 		// Language constants
