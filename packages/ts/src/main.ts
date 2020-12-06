@@ -22,6 +22,7 @@ import { Scanner } from './lib/scanner';
 import { ErrorReporter } from './lib/error-reporter';
 import { Parser } from './lib/parser';
 import { formatAst } from './lib/debug';
+import { formatResult, Interpreter } from './lib/interpreter';
 
 class Lox {
 	static main(args: string[]): void {
@@ -42,6 +43,8 @@ class Lox {
 		}
 	}
 
+	private static interpreter = new Interpreter();
+
 	private static _rl?: ReadLine;
 	private static get rl(): ReadLine {
 		if (!this._rl) {
@@ -61,7 +64,10 @@ class Lox {
 		console.log(`${prefix} ${resolved}`);
 
 		let result = this.run(content);
-		if (ErrorReporter.hadError) process.exit(65);
+		if (ErrorReporter.hadError) {
+			if (ErrorReporter.runtimeError) process.exit(70);
+			else process.exit(65);
+		}
 
 		this.print(result);
 	}
@@ -89,10 +95,18 @@ class Lox {
 	}
 
 	private static run(source: Buffer | string): string {
-		let tokens = new Scanner(source).scanTokens();
-		let ast = new Parser(tokens).parse();
+		let output: string;
+		try {
+			let tokens = new Scanner(source).scanTokens();
+			let ast = new Parser(tokens).parse();
+			let result = this.interpreter.interpret(ast);
 
-		return formatAst(ast).replace(/\n/g, '\n   ');
+			output = formatResult(result);
+		} catch (err) {
+			return Chalk.red('<Error>');
+		}
+		return output;
+		// return formatAst(ast).replace(/\n/g, '\n   ');
 	}
 }
 

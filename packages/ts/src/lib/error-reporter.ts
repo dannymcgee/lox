@@ -3,22 +3,28 @@ import { Token, TokenType } from './types';
 
 export class ErrorReporter {
 	static hadError: boolean;
+	static runtimeError: boolean;
 
-	static error(token: Token, message: string): void;
-	static error(line: number, message: string): void;
-	static error(lineOrToken: Token | number, message: string): void {
-		if (lineOrToken instanceof Token) {
-			if (lineOrToken.type === TokenType.EOF) {
-				this.report(lineOrToken.line, ' at end', message);
+	static error(err: Error): void;
+	static error(token: Token, message?: string): void;
+	static error(line: number, message?: string): void;
+
+	static error(err: Error | Token | number, message?: string): void {
+		this.runtimeError = err instanceof Error;
+		if (err instanceof Error) {
+			this.report(
+				(err as any).token.line,
+				` at '${(err as any).token.lexeme}'`,
+				err.message,
+			);
+		} else if (err instanceof Token) {
+			if (err.type === TokenType.EOF) {
+				this.report(err.line, ' at end', message);
 			} else {
-				this.report(
-					lineOrToken.line,
-					` at '${lineOrToken.lexeme}'`,
-					message,
-				);
+				this.report(err.line, ` at '${err.lexeme}'`, message);
 			}
 		} else {
-			this.report(lineOrToken, '', message);
+			this.report(err, '', message);
 		}
 	}
 
