@@ -28,6 +28,7 @@ export class AstGenerator {
 			`If         | condition: Expr, thenBranch: Stmt, elseBranch: Stmt`,
 			`Print      | expression: Expr`,
 			`Var        | name: Token, initializer: Expr`,
+			`While      | condition: Expr, body: Stmt`,
 		], [
 			`import { Expr } from './expr';`,
 			`import { Token } from './token';`,

@@ -8,14 +8,16 @@ varDecl     -> "var" IDENTIFIER ( "=" expression )? ";" ;
 statement   -> exprStmt
              | ifStmt
              | printStmt
+             | whileStmt
              | block ;
 
 block       -> "{" declaration* "}" ;
 
+exprStmt    -> expression ";" ;
 ifStmt      -> "if" "(" expression ")" statement
              ( "else" statement )? ;
-exprStmt    -> expression ";" ;
 printStmt   -> "print" expression ";" ;
+whileStmt   -> "while" "(" expression ")" statement ;
 
 expression  -> assignment ;
 assignment  -> IDENTIFIER "=" assignment

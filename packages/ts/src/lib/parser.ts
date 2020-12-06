@@ -14,7 +14,7 @@ import {
 	Unary,
 	Variable,
 } from './types';
-import { Block, Expression, If, Print, Stmt, Var } from './types/stmt';
+import { Block, Expression, If, Print, Stmt, Var, While } from './types/stmt';
 
 namespace Operators {
 	export const EQUALITY = [TokenType.BangEqual, TokenType.EqualEqual];
@@ -97,6 +97,7 @@ export class Parser {
 	private statement(): Stmt {
 		if (this.match(TokenType.If)) return this.ifStatement();
 		if (this.match(TokenType.Print)) return this.printStatement();
+		if (this.match(TokenType.While)) return this.whileStatement();
 		if (this.match(TokenType.LeftBrace)) return new Block(this.block());
 		return this.expressionStatement();
 	}
@@ -121,6 +122,13 @@ export class Parser {
 		let value = this.expression();
 		this.consume(TokenType.Semicolon, `Expected ';' after value.`);
 		return new Print(value);
+	}
+	private whileStatement(): Stmt {
+		this.consume(TokenType.LeftParen, `Expected '(' after 'while'.`);
+		let condition = this.expression();
+		this.consume(TokenType.RightParen, `Expected ')' after condition.`);
+		let body = this.statement();
+		return new While(condition, body);
 	}
 	private expressionStatement(): Stmt {
 		let expr = this.expression();

@@ -99,14 +99,14 @@ class Lox {
 		try {
 			let tokens = new Scanner(source).scanTokens();
 			let ast = new Parser(tokens).parse();
-			this.interpreter.interpret(ast);
+			// return formatAst(ast).replace(/\n/g, '\n   ');
 
+			this.interpreter.interpret(ast);
 			output = Chalk.bold.inverse.greenBright(' DONE ');
 		} catch (err) {
 			return Chalk.red('<Error>');
 		}
 		return output;
-		// return formatAst(ast).replace(/\n/g, '\n   ');
 	}
 }
 

@@ -1,6 +1,7 @@
 import * as Chalk from 'chalk';
 import { Environment } from './environment';
 
+import { formatAst } from './debug';
 import { ErrorReporter } from './error-reporter';
 import { TokenType, Token } from './types';
 import * as Expr from './types/expr';
@@ -40,6 +41,10 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 	visitPrintStmt(stmt: Stmt.Print): void {
 		let value = this.evaluate(stmt.expression);
 		console.log(formatValue(value));
+	}
+	visitWhileStmt(stmt: Stmt.While): void {
+		while (this.isTruthy(this.evaluate(stmt.condition)))
+			this.execute(stmt.body);
 	}
 	visitBlockStmt(stmt: Stmt.Block): void {
 		this.executeBlock(stmt.statements, new Environment(this.env));
