@@ -1,3 +1,6 @@
+import * as Util from 'util';
+import * as Chalk from 'chalk';
+
 // prettier-ignore
 export enum TokenType {
 	// Single-character tokens
@@ -33,5 +36,9 @@ export class Token {
 			value += ` | [${this.literal}]`;
 		}
 		return value + ` | ${this.line}`;
+	}
+
+	[Util.inspect.custom](): string {
+		return Chalk.bold.white(this.lexeme);
 	}
 }

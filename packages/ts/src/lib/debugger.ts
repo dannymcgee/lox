@@ -1,6 +1,6 @@
 import { Binary, Expr, Grouping, Literal, Unary, Visitor } from './types';
 
-export class AstDebugger implements Partial<Visitor<string>> {
+export class AstDebugger implements Visitor<string> {
 	print(expr: Expr): string {
 		return expr.accept(this);
 	}
@@ -17,7 +17,12 @@ export class AstDebugger implements Partial<Visitor<string>> {
 	visitUnaryExpr(expr: Unary): string {
 		return this.parenthesize(expr.operator.lexeme, expr.right);
 	}
+
 	private parenthesize(name: string, ...exprs: Expr[]): string {
-		return `(${name} ${exprs.map((expr) => expr.accept(this))})`;
+		return [
+			`(${name} `,
+			exprs.map((expr) => expr.accept(this)).join(', '),
+			`)`,
+		].join('');
 	}
 }

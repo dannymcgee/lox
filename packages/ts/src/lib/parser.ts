@@ -1,0 +1,187 @@
+import * as Util from 'util';
+import * as Chalk from 'chalk';
+
+import { ErrorReporter } from './error-reporter';
+import {
+	Binary,
+	Expr,
+	Grouping,
+	Literal as _Literal,
+	Token,
+	TokenType,
+	Unary,
+} from './types';
+
+namespace Operators {
+	export const EQUALITY = [TokenType.BangEqual, TokenType.EqualEqual];
+	export const COMPARISON = [
+		TokenType.Greater,
+		TokenType.GreaterEqual,
+		TokenType.Less,
+		TokenType.LessEqual,
+	];
+	export const TERM = [TokenType.Minus, TokenType.Plus];
+	export const FACTOR = [TokenType.Slash, TokenType.Star];
+	export const UNARY = [TokenType.Bang, TokenType.Minus];
+}
+
+class Literal extends _Literal {
+	[Util.inspect.custom](): string {
+		let color: Function;
+		switch (typeof this.value) {
+			case 'number':
+				color = Chalk.cyan;
+				break;
+			case 'string':
+				color = Chalk.green;
+				break;
+			case 'boolean':
+				color = Chalk.magenta;
+				break;
+			default:
+				if (this.value === null) color = Chalk.magenta;
+				else color = Chalk.bold;
+		}
+		if (this.value == null) return color('nil');
+		return color(this.value);
+	}
+}
+
+export class Parser {
+	private readonly tokens: readonly Token[];
+	private current = 0;
+
+	constructor(tokens: readonly Token[]) {
+		this.tokens = tokens;
+	}
+
+	parse(): Expr | null {
+		try {
+			return this.expression();
+		} catch (err) {
+			if (err instanceof ParseError) return null;
+			throw err;
+		}
+	}
+
+	private expression(): Expr {
+		return this.equality();
+	}
+	private equality(): Expr {
+		return this.binary(Operators.EQUALITY, this.comparison);
+	}
+	private comparison(): Expr {
+		return this.binary(Operators.COMPARISON, this.term);
+	}
+	private term(): Expr {
+		return this.binary(Operators.TERM, this.factor);
+	}
+	private factor(): Expr {
+		return this.binary(Operators.FACTOR, this.unary);
+	}
+	private unary(): Expr {
+		if (this.match(TokenType.Bang, TokenType.Minus)) {
+			let operator = this.previous();
+			let right = this.unary();
+
+			return new Unary(operator, right);
+		}
+		return this.primary();
+	}
+	private primary(): Expr {
+		// Language constants
+		if (this.match(TokenType.False)) return new Literal(false);
+		if (this.match(TokenType.True)) return new Literal(true);
+		if (this.match(TokenType.Nil)) return new Literal(null);
+
+		// Literal string / number
+		if (this.match(TokenType.Number, TokenType.String)) {
+			return new Literal(this.previous().literal);
+		}
+
+		// Paren group
+		if (this.match(TokenType.LeftParen)) {
+			let expr = this.expression();
+			this.consume(
+				TokenType.RightParen,
+				`Expected ')' after expression.`,
+			);
+			return new Grouping(expr);
+		}
+
+		throw this.error(this.peek(), 'Expected expression.');
+	}
+
+	private synchronize(): void {
+		this.advance();
+		while (!this.atEnd()) {
+			if (this.previous().type === TokenType.Semicolon) return;
+			switch (this.peek().type) {
+				case TokenType.Class:
+				case TokenType.Fn:
+				case TokenType.Var:
+				case TokenType.For:
+				case TokenType.If:
+				case TokenType.While:
+				case TokenType.Print:
+				case TokenType.Return:
+					return;
+			}
+			this.advance();
+		}
+	}
+
+	private binary(operators: TokenType[], operandMethod: () => Expr) {
+		let expr = operandMethod.call(this);
+		while (this.match(...operators)) {
+			let operator = this.previous();
+			let right = operandMethod.call(this);
+			expr = new Binary(expr, operator, right);
+		}
+		return expr;
+	}
+
+	private atEnd(): boolean {
+		return this.peek().type === TokenType.EOF;
+	}
+
+	private advance(): Token {
+		if (!this.atEnd()) this.current++;
+		return this.previous();
+	}
+	private peek(): Token {
+		return this.tokens[this.current];
+	}
+	private previous(): Token {
+		return this.tokens[this.current - 1];
+	}
+	private consume(type: TokenType, errMessage: string): Token {
+		if (this.check(type)) return this.advance();
+		throw this.error(this.peek(), errMessage);
+	}
+
+	private check(type: TokenType): boolean {
+		if (this.atEnd()) return false;
+		return this.peek().type === type;
+	}
+	private match(...types: TokenType[]): boolean {
+		if (types.some((type) => this.check(type))) {
+			this.advance();
+			return true;
+		}
+		return false;
+	}
+
+	private error(token: Token, message: string): Error {
+		ErrorReporter.error(token, message);
+		return new ParseError(token, message);
+	}
+}
+
+class ParseError extends Error {
+	readonly token: Token;
+	constructor(token: Token, message: string) {
+		super(message);
+		this.token = token;
+	}
+}

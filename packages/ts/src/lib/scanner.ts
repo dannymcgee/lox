@@ -31,7 +31,7 @@ export class Scanner {
 		this.source = source.toString();
 	}
 
-	scanTokens(): ReadonlyArray<Token> {
+	scanTokens(): readonly Token[] {
 		while (!this.atEnd()) {
 			this.start = this.current;
 			this.scanToken();
