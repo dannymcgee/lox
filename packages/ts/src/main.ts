@@ -21,6 +21,7 @@ Util.inspect.styles = {
 import { Scanner } from './lib/scanner';
 import { ErrorReporter } from './lib/error-reporter';
 import { Parser } from './lib/parser';
+import { formatAst } from './lib/debug';
 
 class Lox {
 	static main(args: string[]): void {
@@ -91,12 +92,7 @@ class Lox {
 		let tokens = new Scanner(source).scanTokens();
 		let ast = new Parser(tokens).parse();
 
-		// prettier-ignore
-		return Util
-			.inspect(ast, { depth: 20, colors: true })
-			.replace(/\n/g, '\n   ')
-			.replace(/[A-Z][a-zA-Z]+(?= {)/g, Chalk.bold.yellow('$&'))
-			.replace(/[a-z][a-zA-Z]+(?=:)/g, Chalk.redBright('$&'))
+		return formatAst(ast).replace(/\n/g, '\n   ');
 	}
 }
 
