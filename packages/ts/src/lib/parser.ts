@@ -8,12 +8,13 @@ import {
 	Expr,
 	Grouping,
 	Literal as _Literal,
+	Logical,
 	Token,
 	TokenType,
 	Unary,
 	Variable,
 } from './types';
-import { Block, Expression, Print, Stmt, Var } from './types/stmt';
+import { Block, Expression, If, Print, Stmt, Var } from './types/stmt';
 
 namespace Operators {
 	export const EQUALITY = [TokenType.BangEqual, TokenType.EqualEqual];
@@ -94,9 +95,20 @@ export class Parser {
 	}
 
 	private statement(): Stmt {
+		if (this.match(TokenType.If)) return this.ifStatement();
 		if (this.match(TokenType.Print)) return this.printStatement();
 		if (this.match(TokenType.LeftBrace)) return new Block(this.block());
 		return this.expressionStatement();
+	}
+	private ifStatement(): Stmt {
+		this.consume(TokenType.LeftParen, `Expected '(' after 'if'.`);
+		let condition = this.expression();
+		this.consume(TokenType.RightParen, `Expected ')' after if condition.`);
+
+		let thenBranch = this.statement();
+		let elseBranch = this.match(TokenType.Else) ? this.statement() : null;
+
+		return new If(condition, thenBranch, elseBranch);
 	}
 	private block(): Stmt[] {
 		let statements: Stmt[] = [];
@@ -120,7 +132,7 @@ export class Parser {
 		return this.assignment();
 	}
 	private assignment(): Expr {
-		let expr = this.equality();
+		let expr = this.or();
 		if (this.match(TokenType.Equal)) {
 			let equals = this.previous();
 			let value = this.assignment();
@@ -130,6 +142,24 @@ export class Parser {
 				return new Assign(name, value);
 			}
 			this.error(equals, 'Invalid assignment target.');
+		}
+		return expr;
+	}
+	private or(): Expr {
+		let expr = this.and();
+		while (this.match(TokenType.Or)) {
+			let operator = this.previous();
+			let right = this.and();
+			expr = new Logical(expr, operator, right);
+		}
+		return expr;
+	}
+	private and(): Expr {
+		let expr = this.equality();
+		while (this.match(TokenType.And)) {
+			let operator = this.previous();
+			let right = this.equality();
+			expr = new Logical(expr, operator, right);
 		}
 		return expr;
 	}

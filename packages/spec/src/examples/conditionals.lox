@@ -1,0 +1,14 @@
+var foo;
+var bar = "bar";
+if (foo) print "foo";
+else print bar;
+
+print foo and "foo" or bar;
+print nil or bar;
+
+if (foo and bar) {
+	print "foobar";
+} else {
+	foo = "baz";
+	print foo + bar;
+}

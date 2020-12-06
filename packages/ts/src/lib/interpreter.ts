@@ -32,6 +32,11 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 	visitExpressionStmt(stmt: Stmt.Expression): void {
 		this.evaluate(stmt.expression);
 	}
+	visitIfStmt(stmt: Stmt.If): void {
+		if (this.isTruthy(this.evaluate(stmt.condition)))
+			this.execute(stmt.thenBranch);
+		else if (stmt.elseBranch) this.execute(stmt.elseBranch);
+	}
 	visitPrintStmt(stmt: Stmt.Print): void {
 		let value = this.evaluate(stmt.expression);
 		console.log(formatValue(value));
@@ -60,6 +65,13 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 	}
 	visitLiteralExpr(expr: Expr.Literal): Object {
 		return expr.value;
+	}
+	visitLogicalExpr(expr: Expr.Logical): Object {
+		let left = this.evaluate(expr.left);
+		if (expr.operator.type === TokenType.Or) {
+			if (this.isTruthy(left)) return left;
+		} else if (!this.isTruthy(left)) return left;
+		return this.evaluate(expr.right);
 	}
 	visitGroupingExpr(expr: Expr.Grouping): Object {
 		return this.evaluate(expr.expression);
