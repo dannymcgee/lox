@@ -1,21 +1,18 @@
 import * as Chalk from 'chalk';
+import { RuntimeError } from './interpreter';
 import { Line, Token } from './types';
 
 export class ErrorReporter {
 	static hadError: boolean;
 	static runtimeError: boolean;
 
-	static error(err: Error): void;
+	static error(err: RuntimeError): void;
 	static error(token: Token, message: string): void;
 
-	static error(err: Error | Token, message?: string): void {
-		this.runtimeError = err instanceof Error;
-		if (err instanceof Error) {
-			this.report(
-				(err as any).token.line,
-				(err as any).token,
-				err.message,
-			);
+	static error(err: RuntimeError | Token, message?: string): void {
+		this.runtimeError = err instanceof RuntimeError;
+		if (err instanceof RuntimeError) {
+			this.report(err.token.line, err.token, err.message);
 		} else {
 			this.report(err.line, err, message);
 		}
@@ -28,12 +25,13 @@ export class ErrorReporter {
 		// Print the offending line with the error location highlighted
 		let { content } = line;
 		let index = where.start - line.start;
+		let tokenLength = where?.lexeme?.length ?? 1;
 		let annotated = [
 			Chalk.grey(line.lineNumber),
 			' ',
 			content.substring(0, index),
-			Chalk.bold.redBright(line.content.charAt(index)),
-			content.substring(index + 1),
+			Chalk.bold.redBright(content.substr(index, tokenLength)),
+			content.substring(index + tokenLength),
 		]
 			.join('')
 			.replace(/\t/g, '  ')

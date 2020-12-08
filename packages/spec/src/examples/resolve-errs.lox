@@ -1,0 +1,12 @@
+{
+	var foo = "foo";
+	var foo = "bar";
+	print foo;
+}
+
+var bar = "bar";
+{
+	var bar = bar;
+}
+
+return "from top level";

@@ -21,7 +21,8 @@ Util.inspect.styles = {
 import { Scanner } from './lib/scanner';
 import { ErrorReporter } from './lib/error-reporter';
 import { Parser } from './lib/parser';
-import { Interpreter } from './lib/interpreter';
+import { Interpreter, Return, RuntimeError } from './lib/interpreter';
+import { Resolver } from './lib/resolver';
 import { formatAst } from './lib/debug';
 
 class Lox {
@@ -36,7 +37,7 @@ class Lox {
 			console.log('Usage: tslox [script]');
 			process.exit(64);
 		} else if (normalized.length === 1) {
-			console.log('args:', args);
+			// console.log('args:', args);
 			this.runFile(normalized[0]);
 		} else {
 			this.runPrompt();
@@ -99,12 +100,18 @@ class Lox {
 		try {
 			let { tokens } = new Scanner(source).scan();
 			let ast = new Parser(tokens).parse();
-			// return formatAst(ast).replace(/\n/g, '\n   ');
+			if (ErrorReporter.hadError) return; // Parse error
 
+			new Resolver(this.interpreter).resolve(ast);
+			if (ErrorReporter.hadError) return; // Resolve error
+
+			// return formatAst(ast).replace(/\n/g, '\n   ');
 			this.interpreter.interpret(ast);
 			output = Chalk.bold.inverse.greenBright(' DONE ');
 		} catch (err) {
-			return Chalk.red('<Error>');
+			if (err instanceof RuntimeError || err instanceof Return)
+				return Chalk.bold.redBright(' ERROR ');
+			throw err;
 		}
 		return output;
 	}

@@ -11,6 +11,7 @@ import * as Stmt from './types/stmt';
 export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 	readonly globals = new Environment();
 	private env = this.globals;
+	private readonly locals = new WeakMap<Expr.Expr, number>();
 
 	constructor() {
 		this.globals.define(
@@ -60,6 +61,9 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 			}
 			throw err;
 		}
+	}
+	resolve(expr: Expr.Expr, depth: number): void {
+		this.locals.set(expr, depth);
 	}
 
 	visitVarStmt(stmt: Stmt.Var): void {
@@ -115,7 +119,9 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 
 	visitAssignExpr(expr: Expr.Assign): Object {
 		let value = this.evaluate(expr.value);
-		this.env.assign(expr.name, value);
+		let distance = this.locals.get(expr);
+		if (distance == null) this.globals.assign(expr.name, value);
+		else this.env.assignAt(distance, expr.name.lexeme, value);
 		return value;
 	}
 	visitLiteralExpr(expr: Expr.Literal): Object {
@@ -146,7 +152,7 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 		return null;
 	}
 	visitVariableExpr(expr: Expr.Variable): Object {
-		return this.env.get(expr.name);
+		return this.lookUpVar(expr.name, expr);
 	}
 	visitBinaryExpr(expr: Expr.Binary): Object {
 		let left = this.evaluate(expr.left) as any;
@@ -202,6 +208,11 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 		throw new RuntimeError(expr.paren, `Expression is not invokable.`);
 	}
 
+	private lookUpVar(name: Token, expr: Expr.Expr): Object {
+		let distance = this.locals.get(expr);
+		if (distance == null) return this.globals.get(name);
+		return this.env.getAt(distance, name.lexeme);
+	}
 	private evaluate(expr: Expr.Expr): Object {
 		return expr.accept(this);
 	}
