@@ -12,6 +12,7 @@ export class AstGenerator {
 		this.defineAst(outputDir, 'Expr', [
 			`Assign   | name: Token, value: Expr`,
 			`Binary   | left: Expr, operator: Token, right: Expr`,
+			`Fn       | params: Token[], body: Stmt.Stmt[]`,
 			`Call     | callee: Expr, paren: Token, args: Expr[]`,
 			`Grouping | expression: Expr`,
 			`Literal  | value: any`,
@@ -19,21 +20,22 @@ export class AstGenerator {
 			`Unary    | operator: Token, right: Expr`,
 			`Variable | name: Token`,
 		], [
+			`import * as Stmt from './stmt';`,
 			`import { Token } from './token';`,
 		]);
 
 		// prettier-ignore
 		this.defineAst(outputDir, 'Stmt', [
 			`Block      | statements: Stmt[]`,
-			`Expression | expression: Expr`,
-			`Fn         | name: Token, params: Token[], body: Stmt[]`,
-			`If         | condition: Expr, thenBranch: Stmt, elseBranch: Stmt`,
-			`Print      | expression: Expr`,
-			`Return     | keyword: Token, value: Expr`,
-			`Var        | name: Token, initializer: Expr`,
-			`While      | condition: Expr, body: Stmt`,
+			`Expression | expression: Expr.Expr`,
+			`Fn         | name: Token, func: Expr.Fn`,
+			`If         | condition: Expr.Expr, thenBranch: Stmt, elseBranch: Stmt`,
+			`Print      | expression: Expr.Expr`,
+			`Return     | keyword: Token, value: Expr.Expr`,
+			`Var        | name: Token, initializer: Expr.Expr`,
+			`While      | condition: Expr.Expr, body: Stmt`,
 		], [
-			`import { Expr } from './expr';`,
+			`import * as Expr from './expr';`,
 			`import { Token } from './token';`,
 		]);
 	}

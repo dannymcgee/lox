@@ -74,7 +74,7 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 		this.evaluate(stmt.expression);
 	}
 	visitFnStmt(stmt: Stmt.Fn): void {
-		let fn = new FnObject(stmt, this.env);
+		let fn = new FnObject(stmt.func, this.env, stmt.name.lexeme);
 		this.env.define(stmt.name.lexeme, fn);
 	}
 	visitIfStmt(stmt: Stmt.If): void {
@@ -127,6 +127,9 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 			if (this.isTruthy(left)) return left;
 		} else if (!this.isTruthy(left)) return left;
 		return this.evaluate(expr.right);
+	}
+	visitFnExpr(expr: Expr.Fn): Object {
+		return new FnObject(expr, this.env);
 	}
 	visitGroupingExpr(expr: Expr.Grouping): Object {
 		return this.evaluate(expr.expression);

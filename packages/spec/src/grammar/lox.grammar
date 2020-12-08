@@ -4,8 +4,8 @@ declaration -> fnDecl
              | varDecl
              | statement ;
 
-fnDecl      -> "fn" function ;
-function    -> IDENTIFIER "(" parameters? ")" block ;
+fnDecl      -> "fn" IDENTIFIER fnBody ;
+fnBody      -> "(" parameters? ")" block;
 parameters  -> IDENTIFIER ( "," IDENTIFIER )* ;
 varDecl     -> "var" IDENTIFIER ( "=" expression )? ";" ;
 
@@ -43,6 +43,7 @@ call        -> primary ( "(" arguments? ")" )* ;
 arguments   -> expression ( "," expression )* ;
 primary     -> 'true' | 'false' | 'nil'
              | NUMBER | STRING
+             | "fn" fnBody
              | '(' expression ')'
              | IDENTIFIER ;
 
