@@ -1,5 +1,5 @@
 import { Environment } from './environment';
-import { Interpreter } from './interpreter';
+import { Interpreter, Return } from './interpreter';
 import { Invokable } from './types';
 import { Fn } from './types/stmt';
 
@@ -18,8 +18,14 @@ export class FnObject implements Invokable {
 		args.forEach((arg, i) => {
 			env.define(this.declaration.params[i].lexeme, arg);
 		});
-		interpreter.executeBlock(this.declaration.body, env);
-
+		try {
+			interpreter.executeBlock(this.declaration.body, env);
+		} catch (err) {
+			if (err instanceof Return) {
+				return err.value;
+			}
+			throw err;
+		}
 		return null;
 	}
 	toString(): string {

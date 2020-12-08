@@ -29,6 +29,7 @@ export class AstGenerator {
 			`Fn         | name: Token, params: Token[], body: Stmt[]`,
 			`If         | condition: Expr, thenBranch: Stmt, elseBranch: Stmt`,
 			`Print      | expression: Expr`,
+			`Return     | keyword: Token, value: Expr`,
 			`Var        | name: Token, initializer: Expr`,
 			`While      | condition: Expr, body: Stmt`,
 		], [

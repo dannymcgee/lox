@@ -21,6 +21,7 @@ import {
 	Fn,
 	If,
 	Print,
+	Return,
 	Stmt,
 	Var,
 	While,
@@ -138,6 +139,7 @@ export class Parser {
 		if (this.match(TokenType.For)) return this.forStatement();
 		if (this.match(TokenType.If)) return this.ifStatement();
 		if (this.match(TokenType.Print)) return this.printStatement();
+		if (this.match(TokenType.Return)) return this.returnStatement();
 		if (this.match(TokenType.While)) return this.whileStatement();
 		if (this.match(TokenType.LeftBrace)) return new Block(this.block());
 		return this.expressionStatement();
@@ -186,6 +188,13 @@ export class Parser {
 		let value = this.expression();
 		this.consume(TokenType.Semicolon, `Expected ';' after value.`);
 		return new Print(value);
+	}
+	private returnStatement(): Stmt {
+		let keyword = this.previous();
+		let value = null;
+		if (!this.check(TokenType.Semicolon)) value = this.expression();
+		this.consume(TokenType.Semicolon, `Expected ';' after return value.`);
+		return new Return(keyword, value);
 	}
 	private whileStatement(): Stmt {
 		this.consume(TokenType.LeftParen, `Expected '(' after 'while'.`);

@@ -86,6 +86,12 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 		let value = this.evaluate(stmt.expression);
 		console.log(formatValue(value));
 	}
+	visitReturnStmt(stmt: Stmt.Return): void {
+		let value = null;
+		if (stmt.value) value = this.evaluate(stmt.value);
+
+		throw new Return(value);
+	}
 	visitWhileStmt(stmt: Stmt.While): void {
 		while (this.isTruthy(this.evaluate(stmt.condition)))
 			this.execute(stmt.body);
@@ -247,6 +253,14 @@ export class RuntimeError extends Error {
 	constructor(token: Token, message: string) {
 		super(message);
 		this.token = token;
+	}
+}
+
+export class Return extends Error {
+	readonly value: Object;
+	constructor(value: Object) {
+		super();
+		this.value = value;
 	}
 }
 
