@@ -74,7 +74,7 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 		this.evaluate(stmt.expression);
 	}
 	visitFnStmt(stmt: Stmt.Fn): void {
-		let fn = new FnObject(stmt);
+		let fn = new FnObject(stmt, this.env);
 		this.env.define(stmt.name.lexeme, fn);
 	}
 	visitIfStmt(stmt: Stmt.If): void {
