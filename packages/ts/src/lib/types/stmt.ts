@@ -10,6 +10,7 @@ export abstract class Stmt {
 
 export interface Visitor<R> {
 	visitBlockStmt(stmt: Block): R;
+	visitClassStmt(stmt: Class): R;
 	visitExpressionStmt(stmt: Expression): R;
 	visitFnStmt(stmt: Fn): R;
 	visitIfStmt(stmt: If): R;
@@ -29,6 +30,21 @@ export class Block extends Stmt {
 
 	accept<R>(visitor: Visitor<R>): R {
 		return visitor.visitBlockStmt(this);
+	}
+}
+
+export class Class extends Stmt {
+	readonly name: Token;
+	readonly methods: Fn[];
+
+	constructor(name: Token, methods: Fn[]) {
+		super();
+		this.name = name;
+		this.methods = methods;
+	}
+
+	accept<R>(visitor: Visitor<R>): R {
+		return visitor.visitClassStmt(this);
 	}
 }
 

@@ -9,12 +9,16 @@ class Breakfast {
 }
 
 // first-class status
+fn printClass(klass) {
+	print klass;
+}
+
 var myClass = Breakfast;
-sumeFunction(Breakfast);
+printClass(Breakfast);
 
 // constructed by invoking the class
 var breakfast = Breakfast();
-print breakfast; // => "Breakfast instance"
+print breakfast;
 
 // assignment / access
 breakfast.meat = "sausage";
@@ -27,29 +31,51 @@ class Breakfast {
 		this.bread = bread;
 	}
 	serve(who) {
-		// bonus: string interpolation?
+		// TODO: string interpolation?
 		// print $"Enjoy your {this.meat} and {this.bread}, {who}.";
 		print "Enjoy your " + this.meat + " and " + this.bread + ", " + who + ".";
 	}
 }
 var baconAndToast = Breakfast("bacon", "toast");
-baconAndToast.serve("Dear Reader"); // => "Enjoy your bacon and toast, Dear Reader."
+baconAndToast.serve("Dear Reader");
 
-// inheritance
-class Brunch < Breakfast {
-	drink() {
-		print "How about a Bloody Mary?";
+print baconAndToast.init("ham", "bagels");
+baconAndToast.serve("ya filthy animal");
+
+class Logger {
+	init (type, a, b) {
+		this.type = type;
+		this.a = a;
+		if (type == "string") return;
+		this.b = b;
+	}
+
+	log() {
+		if (this.type == "string") print this.a;
+		else print (this.a + this.b);
 	}
 }
+var logger = Logger("string", "I'm a string logger!", nil);
+logger.log();
 
-// init inheritance
-var benedict = Brunch("ham", "English muffin");
-benedict.serve("Noble Reader");
+var sumLogger = logger.init("number", 40, 2);
+sumLogger.log();
 
-// init extension
-class Brunch < Breakfast {
-	init (meat, bread, drink) {
-		super.init(meat, bread);
-		this.drink = drink;
-	}
-}
+// TODO: inheritance
+// class Brunch < Breakfast {
+// 	drink() {
+// 		print "How about a Bloody Mary?";
+// 	}
+// }
+
+// TODO: init inheritance
+// var benedict = Brunch("ham", "English muffin");
+// benedict.serve("Noble Reader");
+
+// TODO: init extension
+// class Brunch < Breakfast {
+// 	init (meat, bread, drink) {
+// 		super.init(meat, bread);
+// 		this.drink = drink;
+// 	}
+// }

@@ -3,10 +3,11 @@ import * as Chalk from 'chalk';
 import { Environment } from './environment';
 
 import { ErrorReporter } from './error-reporter';
-import { FnObject } from './fn-object';
 import { TokenType, Token, isInvokable, Invokable } from './types';
 import * as Expr from './types/expr';
 import * as Stmt from './types/stmt';
+import { LoxClass, LoxInstance } from './lox-class';
+import { LoxFunction } from './lox-function';
 
 export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 	readonly globals = new Environment();
@@ -78,7 +79,7 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 		this.evaluate(stmt.expression);
 	}
 	visitFnStmt(stmt: Stmt.Fn): void {
-		let fn = new FnObject(stmt.func, this.env, stmt.name.lexeme);
+		let fn = new LoxFunction(stmt.func, this.env, stmt.name.lexeme);
 		this.env.define(stmt.name.lexeme, fn);
 	}
 	visitIfStmt(stmt: Stmt.If): void {
@@ -102,6 +103,19 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 	}
 	visitBlockStmt(stmt: Stmt.Block): void {
 		this.executeBlock(stmt.statements, new Environment(this.env));
+	}
+	visitClassStmt(stmt: Stmt.Class): void {
+		this.env.define(stmt.name.lexeme, null);
+
+		let methods = new Map<string, LoxFunction>();
+		for (let method of stmt.methods) {
+			let name = method.name.lexeme;
+			let func = new LoxFunction(method.func, this.env, name);
+			methods.set(name, func);
+		}
+
+		let klass = new LoxClass(stmt.name.lexeme, methods);
+		this.env.assign(stmt.name, klass);
 	}
 
 	private execute(stmt: Stmt.Stmt): void {
@@ -134,8 +148,22 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 		} else if (!this.isTruthy(left)) return left;
 		return this.evaluate(expr.right);
 	}
+	visitSetExpr(expr: Expr.Set): Object {
+		let obj = this.evaluate(expr.obj);
+		if (!(obj instanceof LoxInstance))
+			throw new RuntimeError(
+				expr.name,
+				'Can only set properties of class instances.',
+			);
+		let value = this.evaluate(expr.value);
+		obj.set(expr.name, value);
+		return value;
+	}
+	visitThisExpr(expr: Expr.This): Object {
+		return this.lookUpVar(expr.keyword, expr);
+	}
 	visitFnExpr(expr: Expr.Fn): Object {
-		return new FnObject(expr, this.env);
+		return new LoxFunction(expr, this.env);
 	}
 	visitGroupingExpr(expr: Expr.Grouping): Object {
 		return this.evaluate(expr.expression);
@@ -206,6 +234,16 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 			return callee.invoke(this, ...args);
 		}
 		throw new RuntimeError(expr.paren, `Expression is not invokable.`);
+	}
+	visitGetExpr(expr: Expr.Get): Object {
+		let obj = this.evaluate(expr.obj);
+		if (obj instanceof LoxInstance) {
+			return obj.get(expr.name);
+		}
+		throw new RuntimeError(
+			expr.name,
+			'Can only access properties of class instances.',
+		);
 	}
 
 	private lookUpVar(name: Token, expr: Expr.Expr): Object {
@@ -285,5 +323,33 @@ export function formatValue(result: Object): string {
 	if (result == null) {
 		if (ErrorReporter.hadError) return Chalk.red('Error');
 		return Chalk.magenta('nil');
+	}
+	if (result instanceof LoxFunction) {
+		if (result.name) {
+			return [
+				Chalk.grey('<'),
+				Chalk.magenta('fn '),
+				Chalk.bold.blueBright(result.name),
+				Chalk.grey('>'),
+			].join('');
+		}
+		return [Chalk.grey('<'), Chalk.magenta('fn'), Chalk.grey('>')].join('');
+	}
+	if (result instanceof LoxClass) {
+		return [
+			Chalk.grey('<'),
+			Chalk.magenta('class '),
+			Chalk.bold.yellow(result.name),
+			Chalk.grey('>'),
+		].join('');
+	}
+	if (result instanceof LoxInstance) {
+		return [
+			Chalk.grey('<'),
+			Chalk.magenta('class '),
+			Chalk.bold.yellow(result.proto.name),
+			Chalk.magenta(' instance'),
+			Chalk.grey('>'),
+		].join('');
 	}
 }

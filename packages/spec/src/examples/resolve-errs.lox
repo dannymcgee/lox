@@ -10,3 +10,5 @@ var bar = "bar";
 }
 
 return "from top level";
+
+print this;

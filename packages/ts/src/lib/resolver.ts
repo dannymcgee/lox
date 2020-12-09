@@ -7,12 +7,19 @@ import * as Stmt from './types/stmt';
 enum FunctionType {
 	None,
 	Function,
+	Method,
+	Constructor,
+}
+enum ClassType {
+	None,
+	Class,
 }
 
 export class Resolver implements Stmt.Visitor<void>, Expr.Visitor<void> {
 	private readonly interpreter: Interpreter;
 	private readonly scopes: Stack<Map<string, boolean>> = new Stack();
 	private currentFunction: FunctionType = FunctionType.None;
+	private currentClass: ClassType = ClassType.None;
 
 	constructor(interpreter: Interpreter) {
 		this.interpreter = interpreter;
@@ -54,6 +61,26 @@ export class Resolver implements Stmt.Visitor<void>, Expr.Visitor<void> {
 		this.resolve(stmt.statements);
 		this.endScope();
 	}
+	visitClassStmt(stmt: Stmt.Class): void {
+		let enclosing = this.currentClass;
+		this.currentClass = ClassType.Class;
+
+		this.declare(stmt.name);
+		this.define(stmt.name);
+
+		this.beginScope();
+		this.scopes.peek().set('this', true);
+		for (let method of stmt.methods) {
+			let declaration =
+				method.name.lexeme === 'init'
+					? FunctionType.Constructor
+					: FunctionType.Method;
+			this.resolveFunction(method.func, declaration);
+		}
+		this.endScope();
+
+		this.currentClass = enclosing;
+	}
 	visitExpressionStmt(stmt: Stmt.Expression): void {
 		this.resolve(stmt.expression);
 	}
@@ -76,7 +103,14 @@ export class Resolver implements Stmt.Visitor<void>, Expr.Visitor<void> {
 				stmt.keyword,
 				`Cannot return from outside of a function.`,
 			);
-		if (stmt.value) this.resolve(stmt.value);
+		if (stmt.value) {
+			if (this.currentFunction === FunctionType.Constructor)
+				ErrorReporter.error(
+					stmt.keyword,
+					`Class constructors cannot return a value.`,
+				);
+			this.resolve(stmt.value);
+		}
 	}
 	visitVarStmt(stmt: Stmt.Var): void {
 		this.declare(stmt.name);
@@ -105,6 +139,9 @@ export class Resolver implements Stmt.Visitor<void>, Expr.Visitor<void> {
 		this.resolve(expr.callee);
 		for (let arg of expr.args) this.resolve(arg);
 	}
+	visitGetExpr(expr: Expr.Get): void {
+		this.resolve(expr.obj);
+	}
 	visitGroupingExpr(expr: Expr.Grouping): void {
 		this.resolve(expr.expression);
 	}
@@ -112,6 +149,20 @@ export class Resolver implements Stmt.Visitor<void>, Expr.Visitor<void> {
 	visitLogicalExpr(expr: Expr.Logical): void {
 		this.resolve(expr.left);
 		this.resolve(expr.right);
+	}
+	visitSetExpr(expr: Expr.Set): void {
+		this.resolve(expr.value);
+		this.resolve(expr.obj);
+	}
+	visitThisExpr(expr: Expr.This): void {
+		if (this.currentClass === ClassType.None) {
+			ErrorReporter.error(
+				expr.keyword,
+				`Cannot use 'this' outside of a class.`,
+			);
+			return;
+		}
+		this.resolveLocal(expr, expr.keyword);
 	}
 	visitUnaryExpr(expr: Expr.Unary): void {
 		this.resolve(expr.right);

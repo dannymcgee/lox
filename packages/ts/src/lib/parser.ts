@@ -58,14 +58,8 @@ export class Parser {
 
 	private declaration(): Stmt.Stmt {
 		try {
-			if (
-				this.check(TokenType.Fn) &&
-				this.checkNext(TokenType.Identifier)
-			) {
-				this.consume(TokenType.Fn, '');
-				return this.fnDeclaration('function');
-			}
-
+			if (this.match(TokenType.Class)) return this.classDeclaration();
+			if (this.matchFnDecl()) return this.fnDeclaration('function');
 			if (this.match(TokenType.Var)) return this.varDeclaration();
 			return this.statement();
 		} catch (err) {
@@ -75,6 +69,17 @@ export class Parser {
 			}
 			throw err;
 		}
+	}
+	private classDeclaration(): Stmt.Class {
+		let name = this.consume(TokenType.Identifier, `Expected class name.`);
+
+		this.consume(TokenType.LeftBrace, `Expected '{' before class body.`);
+		let methods: Stmt.Fn[] = [];
+		while (!this.check(TokenType.RightBrace) && !this.atEnd())
+			methods.push(this.fnDeclaration('method'));
+		this.consume(TokenType.RightBrace, `Expected '}' after class body.`);
+
+		return new Stmt.Class(name, methods);
 	}
 	private fnDeclaration(kind: string): Stmt.Fn {
 		let name = this.consume(TokenType.Identifier, `Expected ${kind} name.`);
@@ -184,6 +189,9 @@ export class Parser {
 			if (expr instanceof Expr.Variable) {
 				let name = expr.name;
 				return new Expr.Assign(name, value);
+			} else if (expr instanceof Expr.Get) {
+				let get = expr;
+				return new Expr.Set(get.obj, get.name, value);
 			}
 			this.error(equals, 'Invalid assignment target.');
 		}
@@ -262,7 +270,13 @@ export class Parser {
 		let expr = this.primary();
 		while (true) {
 			if (this.match(TokenType.LeftParen)) expr = this.finishCall(expr);
-			else break;
+			else if (this.match(TokenType.Dot)) {
+				let name = this.consume(
+					TokenType.Identifier,
+					`Expected property name.`,
+				);
+				expr = new Expr.Get(expr, name);
+			} else break;
 		}
 		return expr;
 	}
@@ -293,6 +307,9 @@ export class Parser {
 		// Literal string / number
 		if (this.match(TokenType.Number, TokenType.String))
 			return new Literal(this.previous().literal);
+
+		// This
+		if (this.match(TokenType.This)) return new Expr.This(this.previous());
 
 		// Variable
 		if (this.match(TokenType.Identifier))
@@ -373,6 +390,13 @@ export class Parser {
 	private match(...types: TokenType[]): boolean {
 		if (types.some((type) => this.check(type))) {
 			this.advance();
+			return true;
+		}
+		return false;
+	}
+	private matchFnDecl(): boolean {
+		if (this.check(TokenType.Fn) && this.checkNext(TokenType.Identifier)) {
+			this.consume(TokenType.Fn, '');
 			return true;
 		}
 		return false;

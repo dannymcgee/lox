@@ -1,24 +1,26 @@
-// call
-makeBreakfast(bacon, eggs, toast);
-makeBreakfast();
-
 // definition
 fn printSum(a, b) {
 	print a + b;
 }
 
+// return
 fn returnSum(a, b) {
 	return a + b;
 }
 
-// arrow shorthand?
-fn returnSum(a, b) => a + b;
+// call
+printSum(400, 20);
+print returnSum(60, 9);
 
-// lambdas?
-fn (a, b) => a + b;
-fn (a, b) {
+// lambdas
+var sumLambda = fn (a, b) {
 	return a + b;
-}
+};
+print sumLambda(40, 2);
+
+// TODO: arrow shorthand
+// fn returnSum(a, b) => a + b;
+// fn(a, b) => a + b;
 
 // closures
 fn addPairs(a, b) {
@@ -27,7 +29,7 @@ fn addPairs(a, b) {
 fn identity(a) {
 	return a;
 }
-print identity(addPair)(1, 2); // => 3
+print identity(addPairs)(1, 2); // => 3
 
 fn outerFunction() {
 	fn localFunction () {
@@ -35,6 +37,7 @@ fn outerFunction() {
 	}
 	localFunction();
 }
+outerFunction();
 
 fn returnFunction() {
 	var outside = "outside";
@@ -46,3 +49,10 @@ fn returnFunction() {
 }
 var foo = returnFunction();
 foo();
+
+fn init() {
+	return "Uh oh, I'm not a class method!";
+}
+
+var notClass = init();
+print notClass;

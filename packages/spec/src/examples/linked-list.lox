@@ -1,0 +1,131 @@
+// Linked List implementation
+
+class Node {
+	init (value, next) {
+		this.value = value;
+		this.nextNode = next;
+	}
+	next() {
+		return this.nextNode;
+	}
+}
+
+class List {
+	init () {
+		this.sentinel = Node(nil, nil);
+		this.head = this.sentinel;
+		this.tail = this.sentinel;
+	}
+
+	add(item) {
+		var new = Node(item, this.sentinel);
+
+		if (this.head == this.sentinel)
+			this.head = new;
+		else if (this.tail == this.sentinel) {
+			this.tail = new;
+			this.head.nextNode = this.tail;
+		} else {
+			var prev = this.tail;
+			this.tail = new;
+			prev.nextNode = this.tail;
+		}
+	}
+
+	next() {
+		return this.head;
+	}
+}
+
+// Iteration helper
+fn forEach(callback, list) {
+	for (
+		var current = list.next();
+		current.next() != nil;
+		current = current.next()
+	)
+		callback(current.value);
+}
+
+// Map function
+fn map(transform, list) {
+	var result = List();
+	forEach(fn (current) {
+		result.add(transform(current));
+	}, list);
+
+	return result;
+}
+
+var nums = List();
+for (var i = 0; i < 10; i = i + 1) nums.add(i);
+
+var squares = map(fn (current) {
+	return current * current;
+}, nums);
+
+print "Squares:";
+forEach(fn (val) { print val; }, squares);
+print "";
+
+// Reduce function
+fn reduce(reducer, initial, list) {
+	var result = initial;
+	forEach(fn (item) {
+		result = reducer(result, item);
+	}, list);
+
+	return result;
+}
+
+print "Sum of squares:";
+var sum = reduce(fn (accum, current) {
+	return accum + current;
+}, 0, squares);
+print sum;
+print "";
+
+// filter
+fn filter(predicate, list) {
+	var result = List();
+	forEach(fn (current) {
+		if (predicate(current))
+			result.add(current);
+	}, list);
+
+	return result;
+}
+
+var birds = List();
+birds.add("Duck");
+birds.add("Duck");
+birds.add("Goose");
+birds.add("Duck");
+birds.add("Duck");
+birds.add("Duck");
+birds.add("Goose");
+birds.add("Duck");
+birds.add("Duck");
+birds.add("Duck");
+birds.add("Duck");
+birds.add("Goose");
+
+var ducks = filter(fn (bird) {
+	return bird != "Goose";
+}, birds);
+
+var geese = filter(fn (bird) {
+	return bird == "Goose";
+}, birds);
+
+print "Birds:";
+forEach(fn (bird) { print bird; }, birds);
+print "";
+
+print "Ducks:";
+forEach(fn (duck) { print duck; }, ducks);
+print "";
+
+print "Geese:";
+forEach(fn (goose) { print goose; }, geese);
+print "";

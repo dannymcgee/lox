@@ -2,11 +2,12 @@ import { Environment } from './environment';
 import { Interpreter, Return } from './interpreter';
 import * as Expr from './types/expr';
 import { Invokable } from './types';
+import { LoxInstance } from './lox-class';
 
-export class FnObject implements Invokable {
+export class LoxFunction implements Invokable {
+	readonly name?: string;
 	private readonly func: Expr.Fn;
 	private readonly closure: Environment;
-	private readonly name?: string;
 
 	constructor(func: Expr.Fn, closure: Environment, name?: string) {
 		this.func = func;
@@ -17,6 +18,7 @@ export class FnObject implements Invokable {
 	arity(): number {
 		return this.func.params.length;
 	}
+
 	invoke(interpreter: Interpreter, ...args: Object[]): Object {
 		let env = new Environment(this.closure);
 		args.forEach((arg, i) => {
@@ -30,8 +32,17 @@ export class FnObject implements Invokable {
 			}
 			throw err;
 		}
+
+		if (this.name === 'init') return this.closure.getAt(0, 'this');
 		return null;
 	}
+
+	bind(instance: LoxInstance): LoxFunction {
+		let env = new Environment(this.closure);
+		env.define('this', instance);
+		return new LoxFunction(this.func, env, this.name);
+	}
+
 	toString(): string {
 		if (this.name) return `<fn ${this.name}>`;
 		return `<fn>`;

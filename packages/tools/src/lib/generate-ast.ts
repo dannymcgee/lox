@@ -14,9 +14,12 @@ export class AstGenerator {
 			`Binary   | left: Expr, operator: Token, right: Expr`,
 			`Fn       | params: Token[], body: Stmt.Stmt[]`,
 			`Call     | callee: Expr, paren: Token, args: Expr[]`,
+			`Get      | obj: Expr, name: Token`,
 			`Grouping | expression: Expr`,
 			`Literal  | value: any`,
 			`Logical  | left: Expr, operator: Token, right: Expr`,
+			`Set      | obj: Expr, name: Token, value: Expr`,
+			`This     | keyword: Token`,
 			`Unary    | operator: Token, right: Expr`,
 			`Variable | name: Token`,
 		], [
@@ -27,6 +30,7 @@ export class AstGenerator {
 		// prettier-ignore
 		this.defineAst(outputDir, 'Stmt', [
 			`Block      | statements: Stmt[]`,
+			`Class      | name: Token, methods: Fn[]`,
 			`Expression | expression: Expr.Expr`,
 			`Fn         | name: Token, func: Expr.Fn`,
 			`If         | condition: Expr.Expr, thenBranch: Stmt, elseBranch: Stmt`,
