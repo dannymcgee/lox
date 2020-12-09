@@ -72,6 +72,11 @@ export class Parser {
 	}
 	private classDeclaration(): Stmt.Class {
 		let name = this.consume(TokenType.Identifier, `Expected class name.`);
+		let superclass: Expr.Variable;
+		if (this.match(TokenType.Less)) {
+			this.consume(TokenType.Identifier, `Expected superclass name.`);
+			superclass = new Expr.Variable(this.previous());
+		}
 
 		this.consume(TokenType.LeftBrace, `Expected '{' before class body.`);
 		let methods: Stmt.Fn[] = [];
@@ -79,7 +84,7 @@ export class Parser {
 			methods.push(this.fnDeclaration('method'));
 		this.consume(TokenType.RightBrace, `Expected '}' after class body.`);
 
-		return new Stmt.Class(name, methods);
+		return new Stmt.Class(name, methods, superclass);
 	}
 	private fnDeclaration(kind: string): Stmt.Fn {
 		let name = this.consume(TokenType.Identifier, `Expected ${kind} name.`);
@@ -308,7 +313,16 @@ export class Parser {
 		if (this.match(TokenType.Number, TokenType.String))
 			return new Literal(this.previous().literal);
 
-		// This
+		// This / Super
+		if (this.match(TokenType.Super)) {
+			let keyword = this.previous();
+			this.consume(TokenType.Dot, `Expected '.' after 'super'.`);
+			let method = this.consume(
+				TokenType.Identifier,
+				`Expected superclass method name.`,
+			);
+			return new Expr.Super(keyword, method);
+		}
 		if (this.match(TokenType.This)) return new Expr.This(this.previous());
 
 		// Variable

@@ -39,43 +39,22 @@ class Breakfast {
 var baconAndToast = Breakfast("bacon", "toast");
 baconAndToast.serve("Dear Reader");
 
+// Re-invoking a constructor
 print baconAndToast.init("ham", "bagels");
 baconAndToast.serve("ya filthy animal");
 
-class Logger {
-	init (type, a, b) {
-		this.type = type;
-		this.a = a;
-		if (type == "string") return;
-		this.b = b;
+// inheritance
+class Brunch < Breakfast {
+	init (meat, bread, drink) {
+		super.init(meat, bread);
+		this.drink = drink;
 	}
-
-	log() {
-		if (this.type == "string") print this.a;
-		else print (this.a + this.b);
+	serve(who) {
+		super.serve(who);
+		print "How about a " + this.drink + " to wash it down?";
 	}
 }
-var logger = Logger("string", "I'm a string logger!", nil);
-logger.log();
 
-var sumLogger = logger.init("number", 40, 2);
-sumLogger.log();
-
-// TODO: inheritance
-// class Brunch < Breakfast {
-// 	drink() {
-// 		print "How about a Bloody Mary?";
-// 	}
-// }
-
-// TODO: init inheritance
-// var benedict = Brunch("ham", "English muffin");
-// benedict.serve("Noble Reader");
-
-// TODO: init extension
-// class Brunch < Breakfast {
-// 	init (meat, bread, drink) {
-// 		super.init(meat, bread);
-// 		this.drink = drink;
-// 	}
-// }
+var benedict = Brunch("ham", "English muffin", "Bloody Mary");
+benedict.serve("Noble Reader");
+// benedict.drink();

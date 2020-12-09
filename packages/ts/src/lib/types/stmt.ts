@@ -36,11 +36,13 @@ export class Block extends Stmt {
 export class Class extends Stmt {
 	readonly name: Token;
 	readonly methods: Fn[];
+	readonly superclass?: Expr.Variable;
 
-	constructor(name: Token, methods: Fn[]) {
+	constructor(name: Token, methods: Fn[], superclass?: Expr.Variable) {
 		super();
 		this.name = name;
 		this.methods = methods;
+		this.superclass = superclass;
 	}
 
 	accept<R>(visitor: Visitor<R>): R {

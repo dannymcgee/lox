@@ -5,14 +5,21 @@ import { Invokable, Token } from './types';
 export class LoxClass implements Invokable {
 	readonly name: string;
 	readonly methods: Map<string, LoxFunction>;
+	readonly superclass?: LoxClass;
 
-	constructor(name: string, methods: Map<string, LoxFunction>) {
+	constructor(
+		name: string,
+		methods: Map<string, LoxFunction>,
+		superclass?: LoxClass,
+	) {
 		this.name = name;
 		this.methods = methods;
+		this.superclass = superclass;
 	}
 
 	method(name: string): LoxFunction | null {
-		return this.methods.get(name);
+		if (this.methods.has(name)) return this.methods.get(name);
+		return this.superclass?.method(name);
 	}
 
 	invoke(interpreter: Interpreter, ...args: Object[]): Object {

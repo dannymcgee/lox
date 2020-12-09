@@ -68,6 +68,19 @@ export class Resolver implements Stmt.Visitor<void>, Expr.Visitor<void> {
 		this.declare(stmt.name);
 		this.define(stmt.name);
 
+		if (stmt.superclass) {
+			if (stmt.superclass.name.lexeme === stmt.name.lexeme)
+				ErrorReporter.error(
+					stmt.superclass.name,
+					`A class cannot inherit from itself.`,
+				);
+			else {
+				this.resolve(stmt.superclass);
+				this.beginScope();
+				this.scopes.peek().set('super', true);
+			}
+		}
+
 		this.beginScope();
 		this.scopes.peek().set('this', true);
 		for (let method of stmt.methods) {
@@ -78,6 +91,7 @@ export class Resolver implements Stmt.Visitor<void>, Expr.Visitor<void> {
 			this.resolveFunction(method.func, declaration);
 		}
 		this.endScope();
+		if (stmt.superclass) this.endScope();
 
 		this.currentClass = enclosing;
 	}
@@ -153,6 +167,16 @@ export class Resolver implements Stmt.Visitor<void>, Expr.Visitor<void> {
 	visitSetExpr(expr: Expr.Set): void {
 		this.resolve(expr.value);
 		this.resolve(expr.obj);
+	}
+	visitSuperExpr(expr: Expr.Super): void {
+		if (this.currentClass === ClassType.None) {
+			ErrorReporter.error(
+				expr.keyword,
+				`Cannot use 'super' outside of a class.`,
+			);
+			return;
+		}
+		this.resolveLocal(expr, expr.keyword);
 	}
 	visitThisExpr(expr: Expr.This): void {
 		if (this.currentClass === ClassType.None) {

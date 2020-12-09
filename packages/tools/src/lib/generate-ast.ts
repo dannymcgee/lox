@@ -19,6 +19,7 @@ export class AstGenerator {
 			`Literal  | value: any`,
 			`Logical  | left: Expr, operator: Token, right: Expr`,
 			`Set      | obj: Expr, name: Token, value: Expr`,
+			`Super    | keyword: Token, method: Token`,
 			`This     | keyword: Token`,
 			`Unary    | operator: Token, right: Expr`,
 			`Variable | name: Token`,
@@ -30,7 +31,7 @@ export class AstGenerator {
 		// prettier-ignore
 		this.defineAst(outputDir, 'Stmt', [
 			`Block      | statements: Stmt[]`,
-			`Class      | name: Token, methods: Fn[]`,
+			`Class      | name: Token, methods: Fn[], superclass?: Expr.Variable`,
 			`Expression | expression: Expr.Expr`,
 			`Fn         | name: Token, func: Expr.Fn`,
 			`If         | condition: Expr.Expr, thenBranch: Stmt, elseBranch: Stmt`,
@@ -105,7 +106,7 @@ export class AstGenerator {
 					}) {`,
 				`		super();`,
 				fields.map(({ name }) =>
-				`		this.${name} = ${name};`).join('\n'),
+				`		this.${name.replace('?', '')} = ${name.replace('?', '')};`).join('\n'),
 				`	}`,
 				``,
 				`	accept<R>(visitor: Visitor<R>): R {`,
