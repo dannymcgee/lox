@@ -13,6 +13,7 @@ enum FunctionType {
 enum ClassType {
 	None,
 	Class,
+	Subclass,
 }
 
 export class Resolver implements Stmt.Visitor<void>, Expr.Visitor<void> {
@@ -75,6 +76,7 @@ export class Resolver implements Stmt.Visitor<void>, Expr.Visitor<void> {
 					`A class cannot inherit from itself.`,
 				);
 			else {
+				this.currentClass = ClassType.Subclass;
 				this.resolve(stmt.superclass);
 				this.beginScope();
 				this.scopes.peek().set('super', true);
@@ -169,13 +171,16 @@ export class Resolver implements Stmt.Visitor<void>, Expr.Visitor<void> {
 		this.resolve(expr.obj);
 	}
 	visitSuperExpr(expr: Expr.Super): void {
-		if (this.currentClass === ClassType.None) {
+		if (this.currentClass === ClassType.None)
 			ErrorReporter.error(
 				expr.keyword,
 				`Cannot use 'super' outside of a class.`,
 			);
-			return;
-		}
+		else if (this.currentClass !== ClassType.Subclass)
+			ErrorReporter.error(
+				expr.keyword,
+				`Cannot use 'super' in a base class`,
+			);
 		this.resolveLocal(expr, expr.keyword);
 	}
 	visitThisExpr(expr: Expr.This): void {
