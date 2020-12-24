@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "packages\\cli-tools"
+		},
+		{
+			"path": "packages\\rust"
+		},
+		{
+			"path": "packages\\spec"
+		},
+		{
+			"path": "packages\\tools"
+		},
+		{
+			"path": "packages\\ts"
+		},
+		{
+			"path": "packages\\vscode-lox"
+		}
+	]
+}
