@@ -2,6 +2,7 @@ use anyhow::{Error, Result};
 
 pub enum Op {
 	Constant(f64),
+	Constant16(f64),
 	Return,
 }
 
@@ -10,14 +11,16 @@ impl Op {
 	pub fn from_byte(byte: u8) -> Result<Self> {
 		match byte {
 			00 => Ok(Op::Constant(0.0)),
+			99 => Ok(Op::Constant16(0.0)),
 			01 => Ok(Op::Return),
 			_  => Err(Error::msg("Could not convert byte to OpCode")),
 		}
 	}
 	fn as_byte(&self) -> u8 {
 		match self {
-			Op::Constant(_) => 00,
-			Op::Return      => 01,
+			Op::Constant(_)   => 00,
+			Op::Constant16(_) => 99,
+			Op::Return        => 01,
 		}
 	}
 }
@@ -43,8 +46,15 @@ impl Chunk {
 		match op_code {
 			Op::Constant(val) => {
 				let idx = self.add_constant(val)?;
-				self.instructions.push(op_code.as_byte());
-				self.instructions.push(idx);
+
+				if idx > 255 {
+					self.instructions.push(Op::Constant16(val).as_byte());
+					self.instructions.push((idx >> 8) as u8);
+					self.instructions.push((idx & 0xff) as u8);
+				} else {
+					self.instructions.push(op_code.as_byte());
+					self.instructions.push(idx as u8);
+				}
 			}
 			_ => self.instructions.push(op_code.as_byte()),
 		}
@@ -52,13 +62,13 @@ impl Chunk {
 
 		Ok(())
 	}
-	fn add_constant(&mut self, value: f64) -> Result<u8> {
+	fn add_constant(&mut self, value: f64) -> Result<u16> {
 		self.constants.push(Value(value));
-
 		let idx = self.constants.len() - 1;
-		match idx {
-			0..=255 => Ok(idx as u8),
-			_ => Err(Error::msg("Cannot store more than 256 constants")),
+		if idx > std::u16::MAX.into() {
+			Err(Error::msg("Too many constants!"))
+		} else {
+			Ok(idx as u16)
 		}
 	}
 }

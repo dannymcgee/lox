@@ -12,6 +12,9 @@ fn main() -> Result<()> {
 
 	chunk.write_instr(Op::Constant(1.2), 123)?;
 	chunk.write_instr(Op::Return, 123)?;
+	for idx in 0..=300 {
+		chunk.write_instr(Op::Constant(idx.into()), 124)?;
+	}
 
 	println!("{:?}", chunk);
 
