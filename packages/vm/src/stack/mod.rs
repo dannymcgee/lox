@@ -72,6 +72,20 @@ impl<T> Stack<T> {
 	}
 }
 
+impl<T> Stack<T>
+where T: Copy
+{
+	pub fn mutate<F>(&mut self, mut mutate: F)
+	where F: FnMut(&mut T) {
+		if self.is_empty() {
+			return;
+		}
+
+		let value = unsafe { &mut *self.end.sub(1) };
+		mutate(value);
+	}
+}
+
 impl<T> Drop for Stack<T> {
 	fn drop(&mut self) {
 		self.empty();

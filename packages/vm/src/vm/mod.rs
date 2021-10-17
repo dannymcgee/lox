@@ -40,11 +40,12 @@ unsafe impl Sync for VM {}
 macro_rules! binop {
 	($self:ident, $stack:ident, $op:tt) => {{
 		let rhs = $stack.pop().ok_or(Error::Runtime)?;
-		let lhs = $stack.pop().ok_or(Error::Runtime)?;
-		$self.disasm.write_value(lhs);
-		$self.disasm.write_value(rhs);
+		$stack.mutate(|lhs| {
+			$self.disasm.write_value(*lhs);
+			$self.disasm.write_value(rhs);
 
-		$stack.push(lhs $op rhs);
+			*lhs = *lhs $op rhs;
+		});
 	}}
 }
 
@@ -74,6 +75,7 @@ impl VM {
 			self.disasm.write_opcode(op);
 
 			#[rustfmt::skip]
+			#[allow(clippy::assign_op_pattern)]
 			match op {
 				Constant | Constant16 | Constant24 => {
 					let value = match op {
@@ -93,9 +95,10 @@ impl VM {
 				Multiply => binop!(self, stack, *),
 				Divide   => binop!(self, stack, /),
 				Negate => {
-					let value = stack.pop().ok_or(Error::Runtime)?;
-					self.disasm.write_value(value);
-					stack.push(-value);
+					stack.mutate(|value| {
+						self.disasm.write_value(*value);
+						*value *= -1.;
+					});
 				}
 				Return => {
 					if let Some(value) = stack.pop() {
