@@ -35,6 +35,9 @@
 		"ts": {
 			"tags": []
 		},
+		"vm": {
+			"tags": []
+		},
 		"vscode-lox": {
 			"tags": []
 		}
@@ -50,5 +53,6 @@
 				"projects": "dependencies"
 			}
 		]
-	}
+	},
+	"plugins": ["@nxrs/cargo"]
 }

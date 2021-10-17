@@ -97,6 +97,42 @@
 				}
 			}
 		},
+		"vm": {
+			"root": "packages/vm",
+			"projectType": "application",
+			"sourceRoot": "packages/vm/src",
+			"architect": {
+				"build": {
+					"builder": "@nxrs/cargo:build",
+					"options": {
+						"release": false
+					},
+					"configurations": {
+						"production": {
+							"release": true
+						}
+					}
+				},
+				"start": {
+					"builder": "@nrwl/workspace:run-commands",
+					"options": {
+						"command": "cargo run -p vm -- {args}"
+					}
+				},
+				"test": {
+					"builder": "@nxrs/cargo:test",
+					"options": {}
+				},
+				"lint": {
+					"builder": "@nxrs/cargo:clippy",
+					"options": {
+						"fix": false,
+						"failOnWarnings": true,
+						"noDeps": true
+					}
+				}
+			}
+		},
 		"vscode-lox": {
 			"root": "packages/vscode-lox",
 			"sourceRoot": "packages/vscode-lox/src",

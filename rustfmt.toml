@@ -1,0 +1,7 @@
+max_width = 90
+chain_width = 50
+hard_tabs = true
+imports_granularity = "Crate"
+use_field_init_shorthand = true
+overflow_delimited_expr = true
+where_single_line = true
