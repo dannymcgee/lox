@@ -23,24 +23,32 @@
 		}
 	},
 	"projects": {
+		"cli-tools": {
+			"tags": []
+		},
 		"spec": {
-			"tags": []
-		},
-		"vscode-lox": {
-			"tags": []
-		},
-		"ts": {
 			"tags": []
 		},
 		"tools": {
 			"tags": []
 		},
-		"cli-tools": {
+		"ts": {
+			"tags": []
+		},
+		"vscode-lox": {
 			"tags": []
 		}
 	},
 	"workspaceLayout": {
 		"appsDir": "packages",
 		"libsDir": "packages"
+	},
+	"targetDependencies": {
+		"build": [
+			{
+				"target": "build",
+				"projects": "dependencies"
+			}
+		]
 	}
 }

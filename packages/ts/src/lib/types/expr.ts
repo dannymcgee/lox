@@ -218,4 +218,3 @@ export class Variable extends Expr {
 		return visitor.visitVariableExpr(this);
 	}
 }
-
