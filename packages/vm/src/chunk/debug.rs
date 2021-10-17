@@ -13,14 +13,14 @@ impl fmt::Debug for Chunk {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		let mut stream = self.iter().enumerate().clone();
 
-		while let Some((idx, byte)) = stream.next() {
+		while let Some((offset, byte)) = stream.next() {
 			// Print the offset
-			write!(f, "{:04}  ", idx)?;
+			write!(f, "{:04}  ", offset)?;
 
 			// Print the line number
-			let line = self.lines.find_line(idx);
-			let prev_line = if idx > 0 {
-				Some(self.lines.find_line(idx - 1))
+			let line = self.lines.find_line(offset);
+			let prev_line = if offset > 0 {
+				Some(self.lines.find_line(offset - 1))
 			} else {
 				None
 			};
@@ -57,7 +57,7 @@ impl fmt::Debug for Chunk {
 			}?;
 
 			// Insert newline if this isn't the last instruction
-			if idx < self.len() - 1 {
+			if offset < self.len() - 1 {
 				writeln!(f)?;
 			}
 		}

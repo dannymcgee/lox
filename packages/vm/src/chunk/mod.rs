@@ -13,20 +13,6 @@ mod vector;
 #[cfg(test)]
 mod tests;
 
-#[macro_export]
-macro_rules! chunk {
-	[] => {
-		$crate::chunk::Chunk::new()
-	};
-	[$($byte:expr),+ $(,)?] => {{
-		let mut chunk = $crate::chunk::Chunk::new();
-		$(chunk.write($byte);)*
-		chunk
-	}};
-}
-
-pub use chunk;
-
 pub use self::vector::{vector, Vector};
 use self::{lines::Lines, value::Value};
 
@@ -45,13 +31,13 @@ pub struct OpCodeError(pub String);
 impl TryFrom<u8> for OpCode {
 	type Error = OpCodeError;
 
-	fn try_from(value: u8) -> Result<Self, Self::Error> {
-		match value {
+	fn try_from(byte: u8) -> Result<Self, Self::Error> {
+		match byte {
 			0x00 => Ok(OpCode::Return),
 			0x01 => Ok(OpCode::Constant),
 			0x02 => Ok(OpCode::Constant16),
 			0x03 => Ok(OpCode::Constant24),
-			_ => Err(OpCodeError(format!("UNKNOWN: {:#04x}", value))),
+			_ => Err(OpCodeError(format!("UNKNOWN: {:#04x}", byte))),
 		}
 	}
 }

@@ -14,15 +14,15 @@ impl<T> IntoIterator for Vector<T> {
 
 	fn into_iter(self) -> IntoIter<T> {
 		unsafe {
-			let chunk = ptr::read(&self);
+			let vec = ptr::read(&self);
 			let len = self.len;
 
 			mem::forget(self);
 
 			IntoIter {
-				start: chunk.ptr(),
-				end: chunk.ptr().add(len),
-				_inner: chunk,
+				start: vec.ptr(),
+				end: vec.ptr().add(len),
+				_inner: vec,
 			}
 		}
 	}
