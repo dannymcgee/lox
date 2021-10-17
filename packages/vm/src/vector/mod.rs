@@ -16,10 +16,10 @@ mod tests;
 #[macro_export]
 macro_rules! vector {
 	[] => {
-		$crate::chunk::vector::Vector::new()
+		$crate::vector::Vector::new()
 	};
 	[$($elem:expr),*$(,)?] => {{
-		let mut vec = $crate::chunk::vector::Vector::new();
+		let mut vec = $crate::vector::Vector::new();
 		$(vec.push($elem);)*
 		vec
 	}};

@@ -1,6 +1,6 @@
 use std::{iter::Enumerate, slice::Iter};
 
-use super::vector::IntoIter;
+use crate::vector::IntoIter;
 
 pub trait JoinBytes {
 	fn join_bytes(&mut self, count: usize) -> Option<usize>;

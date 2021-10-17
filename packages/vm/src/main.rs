@@ -5,6 +5,8 @@ extern crate lazy_static;
 
 mod chunk;
 mod debug;
+mod value;
+mod vector;
 mod vm;
 
 fn main() -> vm::Result {

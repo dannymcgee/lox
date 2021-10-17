@@ -1,4 +1,4 @@
-use super::{vector, Vector};
+use crate::vector::{vector, Vector};
 
 #[derive(Clone, Copy)]
 pub struct LineStart {

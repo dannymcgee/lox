@@ -9,19 +9,16 @@ mod debug;
 mod into_iter;
 mod join_bytes;
 mod lines;
-mod value;
-mod vector;
 
 #[cfg(test)]
 mod tests;
 
-pub use self::{
-	into_iter::Consumable,
-	join_bytes::JoinBytes,
-	lines::Lines,
+use crate::{
 	value::Value,
 	vector::{vector, Vector},
 };
+
+pub use self::{into_iter::Consumable, join_bytes::JoinBytes, lines::Lines};
 
 #[derive(FromPrimitive, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]

@@ -1,8 +1,9 @@
 use std::{cell::UnsafeCell, convert::TryFrom};
 
 use crate::{
-	chunk::{self, Chunk, JoinBytes, Lines, OpCode, Value},
+	chunk::{self, Chunk, JoinBytes, Lines, OpCode},
 	debug::DebugInstruction,
+	value::Value,
 };
 
 // TODO: https://github.com/munificent/craftinginterpreters/blob/6c2ea6f7192910053a78832f0cc34ad56b17ce7c/book/a-virtual-machine.md?plain=1#L50

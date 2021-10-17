@@ -1,6 +1,11 @@
 use std::{mem, ptr};
 
-use super::{lines::Lines, value::Value, vector::IntoIter, Chunk, Vector};
+use crate::{
+	value::Value,
+	vector::{IntoIter, Vector},
+};
+
+use super::{lines::Lines, Chunk};
 
 pub struct Consumable {
 	data: IntoIter<u8>,

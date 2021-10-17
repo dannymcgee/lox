@@ -3,7 +3,10 @@ use std::{
 	fmt::{self, Alignment, Write},
 };
 
-use crate::chunk::{JoinBytes, Lines, OpCode, OpCodeError, Value};
+use crate::{
+	chunk::{JoinBytes, Lines, OpCode, OpCodeError},
+	value::Value,
+};
 
 pub trait DebugInstruction {
 	fn debug_chunk<'a, I>(
