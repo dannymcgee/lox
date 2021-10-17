@@ -6,6 +6,7 @@ use std::{
 use num_derive::FromPrimitive;
 
 mod debug;
+mod lines;
 mod value;
 mod vector;
 
@@ -26,8 +27,8 @@ macro_rules! chunk {
 
 pub use chunk;
 
-use self::value::Value;
 pub use self::vector::{vector, Vector};
+use self::{lines::Lines, value::Value};
 
 #[derive(FromPrimitive, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
@@ -54,7 +55,7 @@ impl TryFrom<u8> for OpCode {
 pub struct Chunk {
 	data: Vector<u8>,
 	constants: Vector<Value>,
-	lines: Vector<usize>,
+	lines: Lines,
 }
 
 impl Chunk {
@@ -62,14 +63,13 @@ impl Chunk {
 		Self {
 			data: vector![],
 			constants: vector![],
-			lines: vector![],
+			lines: Lines::new(),
 		}
 	}
 
 	pub fn write(&mut self, byte: u8, line: usize) {
 		self.data.push(byte);
-		self.lines.push(line);
-		assert_eq!(self.data.len(), self.lines.len());
+		self.lines.add_byte(line, self.data.len() - 1);
 	}
 
 	pub fn add_constant(&mut self, value: Value) -> usize {

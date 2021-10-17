@@ -16,10 +16,17 @@ impl fmt::Debug for Chunk {
 			write!(f, "{:04}  ", idx)?;
 
 			// Print the line number
-			if idx > 0 && self.lines[idx] == self.lines[idx - 1] {
+			let line = self.lines.find_line(idx);
+			let prev_line = if idx > 0 {
+				Some(self.lines.find_line(idx - 1))
+			} else {
+				None
+			};
+
+			if prev_line.is_some() && prev_line.unwrap() == line {
 				write!(f, "   | ")?;
 			} else {
-				write!(f, "{:>4} ", self.lines[idx])?;
+				write!(f, "{:>4} ", line)?;
 			}
 
 			// Print the OpCode
