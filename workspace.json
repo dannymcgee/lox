@@ -1,128 +1,155 @@
 {
-	"version": 1,
-	"projects": {
-		"spec": {
-			"root": "packages/spec",
-			"sourceRoot": "packages/spec/src",
-			"projectType": "library",
-			"schematics": {},
-			"architect": {
-				"lint": {
-					"builder": "@nrwl/linter:eslint",
-					"options": {
-						"lintFilePatterns": ["packages/spec/**/*.ts"]
-					}
-				}
-			}
-		},
-		"vscode-lox": {
-			"root": "packages/vscode-lox",
-			"sourceRoot": "packages/vscode-lox/src",
-			"projectType": "library",
-			"schematics": {},
-			"architect": {
-				"lint": {
-					"builder": "@nrwl/linter:eslint",
-					"options": {
-						"lintFilePatterns": ["packages/vscode-lox/**/*.ts"]
-					}
-				},
-				"test": {
-					"builder": "@nrwl/jest:jest",
-					"options": {
-						"jestConfig": "packages/vscode-lox/jest.config.js",
-						"passWithNoTests": true
-					}
-				},
-				"build": {
-					"builder": "@nrwl/node:package",
-					"options": {
-						"outputPath": "dist/packages/vscode-lox",
-						"tsConfig": "packages/vscode-lox/tsconfig.lib.json",
-						"packageJson": "packages/vscode-lox/package.json",
-						"main": "packages/vscode-lox/src/index.ts",
-						"assets": ["packages/vscode-lox/*.md"]
-					}
-				}
-			}
-		},
-		"ts": {
-			"root": "packages/ts",
-			"sourceRoot": "packages/ts/src",
-			"projectType": "library",
-			"schematics": {},
-			"architect": {
-				"lint": {
-					"builder": "@nrwl/linter:eslint",
-					"options": {
-						"lintFilePatterns": ["packages/ts/**/*.ts"]
-					}
-				},
-				"test": {
-					"builder": "@nrwl/jest:jest",
-					"options": {
-						"jestConfig": "packages/ts/jest.config.js",
-						"passWithNoTests": true
-					}
-				},
-				"start": {
-					"builder": "@nrwl/workspace:run-commands",
-					"options": {
-						"command": "yarn run ts-node -r tsconfig-paths/register --project packages/ts/tsconfig.lib.json packages/ts/src/main.ts packages/spec/src/examples/{args.example}.lox"
-					}
-				}
-			}
-		},
-		"tools": {
-			"root": "packages/tools",
-			"sourceRoot": "packages/tools/src",
-			"projectType": "library",
-			"schematics": {},
-			"architect": {
-				"lint": {
-					"builder": "@nrwl/linter:eslint",
-					"options": {
-						"lintFilePatterns": ["packages/tools/**/*.ts"]
-					}
-				},
-				"test": {
-					"builder": "@nrwl/jest:jest",
-					"options": {
-						"jestConfig": "packages/tools/jest.config.js",
-						"passWithNoTests": true
-					}
-				},
-				"generate": {
-					"builder": "@nrwl/workspace:run-commands",
-					"options": {
-						"command": "yarn run ts-node -r tsconfig-paths/register --project packages/tools/tsconfig.lib.json packages/tools/src/main.ts {args.path} {args.dryRun}"
-					}
-				}
-			}
-		},
-		"cli-tools": {
-			"root": "packages/cli-tools",
-			"sourceRoot": "packages/cli-tools/src",
-			"projectType": "library",
-			"schematics": {},
-			"architect": {
-				"lint": {
-					"builder": "@nrwl/linter:eslint",
-					"options": {
-						"lintFilePatterns": ["packages/cli-tools/**/*.ts"]
-					}
-				},
-				"test": {
-					"builder": "@nrwl/jest:jest",
-					"options": {
-						"jestConfig": "packages/cli-tools/jest.config.js",
-						"passWithNoTests": true
-					}
-				}
-			}
-		}
-	},
-	"cli": {
-		"defaultCollection": "@nrwl/workspace"
-	}
+  "version": 1,
+  "projects": {
+    "spec": {
+      "root": "packages/spec",
+      "sourceRoot": "packages/spec/src",
+      "projectType": "library",
+      "schematics": {},
+      "architect": {
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "packages/spec/**/*.ts"
+            ]
+          }
+        }
+      }
+    },
+    "vscode-lox": {
+      "root": "packages/vscode-lox",
+      "sourceRoot": "packages/vscode-lox/src",
+      "projectType": "library",
+      "schematics": {},
+      "architect": {
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "packages/vscode-lox/**/*.ts"
+            ]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "options": {
+            "jestConfig": "packages/vscode-lox/jest.config.js",
+            "passWithNoTests": true
+          },
+          "outputs": [
+            "coverage/packages/vscode-lox"
+          ]
+        },
+        "build": {
+          "builder": "@nrwl/node:package",
+          "options": {
+            "outputPath": "dist/packages/vscode-lox",
+            "tsConfig": "packages/vscode-lox/tsconfig.lib.json",
+            "packageJson": "packages/vscode-lox/package.json",
+            "main": "packages/vscode-lox/src/index.ts",
+            "assets": [
+              "packages/vscode-lox/*.md"
+            ]
+          },
+          "outputs": [
+            "{options.outputPath}"
+          ]
+        }
+      }
+    },
+    "ts": {
+      "root": "packages/ts",
+      "sourceRoot": "packages/ts/src",
+      "projectType": "library",
+      "schematics": {},
+      "architect": {
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "packages/ts/**/*.ts"
+            ]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "options": {
+            "jestConfig": "packages/ts/jest.config.js",
+            "passWithNoTests": true
+          },
+          "outputs": [
+            "coverage/packages/ts"
+          ]
+        },
+        "start": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "yarn run ts-node -r tsconfig-paths/register --project packages/ts/tsconfig.lib.json packages/ts/src/main.ts packages/spec/src/examples/{args.example}.lox"
+          }
+        }
+      }
+    },
+    "tools": {
+      "root": "packages/tools",
+      "sourceRoot": "packages/tools/src",
+      "projectType": "library",
+      "schematics": {},
+      "architect": {
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "packages/tools/**/*.ts"
+            ]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "options": {
+            "jestConfig": "packages/tools/jest.config.js",
+            "passWithNoTests": true
+          },
+          "outputs": [
+            "coverage/packages/tools"
+          ]
+        },
+        "generate": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "yarn run ts-node -r tsconfig-paths/register --project packages/tools/tsconfig.lib.json packages/tools/src/main.ts {args.path} {args.dryRun}"
+          }
+        }
+      }
+    },
+    "cli-tools": {
+      "root": "packages/cli-tools",
+      "sourceRoot": "packages/cli-tools/src",
+      "projectType": "library",
+      "schematics": {},
+      "architect": {
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "packages/cli-tools/**/*.ts"
+            ]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "options": {
+            "jestConfig": "packages/cli-tools/jest.config.js",
+            "passWithNoTests": true
+          },
+          "outputs": [
+            "coverage/packages/cli-tools"
+          ]
+        }
+      }
+    }
+  },
+  "cli": {
+    "defaultCollection": "@nrwl/workspace"
+  }
 }
