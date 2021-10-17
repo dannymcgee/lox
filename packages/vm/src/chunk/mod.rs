@@ -24,10 +24,11 @@ pub use self::{into_iter::Consumable, join_bytes::JoinBytes, lines::Lines};
 #[repr(u8)]
 #[rustfmt::skip]
 pub enum OpCode {
-	Return     = 0x00,
-	Constant   = 0x01,
-	Constant16 = 0x02,
-	Constant24 = 0x03,
+	Constant   = 0x00,
+	Constant16 = 0x01,
+	Constant24 = 0x02,
+	Negate     = 0x10,
+	Return     = 0xFF,
 }
 
 pub struct OpCodeError(pub String);
@@ -37,10 +38,11 @@ impl TryFrom<u8> for OpCode {
 
 	fn try_from(byte: u8) -> Result<Self, Self::Error> {
 		match byte {
-			0x00 => Ok(OpCode::Return),
-			0x01 => Ok(OpCode::Constant),
-			0x02 => Ok(OpCode::Constant16),
-			0x03 => Ok(OpCode::Constant24),
+			0x00 => Ok(OpCode::Constant),
+			0x01 => Ok(OpCode::Constant16),
+			0x02 => Ok(OpCode::Constant24),
+			0x10 => Ok(OpCode::Negate),
+			0xFF => Ok(OpCode::Return),
 			_ => Err(OpCodeError(format!("UNKNOWN: {:#04x}", byte))),
 		}
 	}

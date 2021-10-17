@@ -15,12 +15,14 @@ impl fmt::Debug for Chunk {
 }
 
 impl fmt::Debug for OpCode {
+	#[rustfmt::skip]
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		let name = match self {
-			Self::Return => "RETURN",
-			Self::Constant => "CONSTANT",
+			Self::Constant   => "CONSTANT",
 			Self::Constant16 => "CONSTANT_16",
 			Self::Constant24 => "CONSTANT_24",
+			Self::Negate     => "NEGATE",
+			Self::Return     => "RETURN",
 		};
 		debug::print_aligned(f, name)
 	}

@@ -153,7 +153,7 @@ pub fn print_aligned(f: &mut fmt::Formatter, text: &str) -> fmt::Result {
 	}
 }
 
-trait Repeat {
+pub trait Repeat {
 	fn repeat(&self, n: usize) -> String;
 }
 
