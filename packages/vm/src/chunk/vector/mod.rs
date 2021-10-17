@@ -8,6 +8,8 @@ mod debug;
 mod into_iter;
 mod iter;
 
+pub use into_iter::IntoIter;
+
 #[cfg(test)]
 mod tests;
 
@@ -30,6 +32,9 @@ pub struct Vector<T> {
 	pub(super) cap: usize,
 	len: usize,
 }
+
+unsafe impl<T: Send> Send for Vector<T> {}
+unsafe impl<T: Sync> Sync for Vector<T> {}
 
 impl<T> Vector<T> {
 	pub fn new() -> Self {

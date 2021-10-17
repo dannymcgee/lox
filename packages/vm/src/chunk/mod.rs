@@ -6,6 +6,8 @@ use std::{
 use num_derive::FromPrimitive;
 
 mod debug;
+mod into_iter;
+mod join_bytes;
 mod lines;
 mod value;
 mod vector;
@@ -13,8 +15,13 @@ mod vector;
 #[cfg(test)]
 mod tests;
 
-pub use self::vector::{vector, Vector};
-use self::{lines::Lines, value::Value};
+pub use self::{
+	into_iter::Consumable,
+	join_bytes::JoinBytes,
+	lines::Lines,
+	value::Value,
+	vector::{vector, Vector},
+};
 
 #[derive(FromPrimitive, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
