@@ -18,7 +18,17 @@ fn main() -> vm::Result {
 
 	chunk.write_const(420., 124);
 	chunk.write_const(69., 124);
+	chunk.write_instr(OpCode::Add, 124);
 	chunk.write_instr(OpCode::Return, 124);
+
+	// -((1.2 + 3.4) / 5.6)
+	chunk.write_const(1.2, 125);
+	chunk.write_const(3.4, 125);
+	chunk.write_instr(OpCode::Add, 125);
+	chunk.write_const(5.6, 125);
+	chunk.write_instr(OpCode::Divide, 125);
+	chunk.write_instr(OpCode::Negate, 125);
+	chunk.write_instr(OpCode::Return, 125);
 
 	vm::get().interpret(chunk)
 }

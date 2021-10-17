@@ -37,6 +37,17 @@ pub struct VM {
 unsafe impl Send for VM {}
 unsafe impl Sync for VM {}
 
+macro_rules! binop {
+	($self:ident, $stack:ident, $op:tt) => {{
+		let rhs = $stack.pop().ok_or(Error::Runtime)?;
+		let lhs = $stack.pop().ok_or(Error::Runtime)?;
+		$self.disasm.write_value(lhs);
+		$self.disasm.write_value(rhs);
+
+		$stack.push(lhs $op rhs);
+	}}
+}
+
 impl VM {
 	pub fn interpret(&self, chunk: Chunk) -> Result {
 		unsafe {
@@ -62,6 +73,7 @@ impl VM {
 			let op = OpCode::try_from(byte).map_err(|_| Error::Compile)?;
 			self.disasm.write_opcode(op);
 
+			#[rustfmt::skip]
 			match op {
 				Constant | Constant16 | Constant24 => {
 					let value = match op {
@@ -76,18 +88,21 @@ impl VM {
 					self.disasm.write_value(value);
 					stack.push(value);
 				}
+				Add      => binop!(self, stack, +),
+				Subtract => binop!(self, stack, -),
+				Multiply => binop!(self, stack, *),
+				Divide   => binop!(self, stack, /),
 				Negate => {
-					if let Some(value) = stack.pop() {
-						self.disasm.write_value(value);
-						stack.push(-value);
-					}
+					let value = stack.pop().ok_or(Error::Runtime)?;
+					self.disasm.write_value(value);
+					stack.push(-value);
 				}
 				Return => {
 					if let Some(value) = stack.pop() {
 						self.disasm.write_value(value);
 					}
 				}
-			}
+			};
 
 			self.disasm.write_stack(stack);
 			self.disasm.flush();

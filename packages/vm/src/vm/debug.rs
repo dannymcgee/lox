@@ -9,7 +9,7 @@ use Alignment::*;
 
 use crate::{
 	chunk::{Lines, OpCode},
-	stack::Stack,
+	stack::{FmtStackElement, Stack},
 	value::Value,
 };
 
@@ -30,7 +30,7 @@ impl Disassembler {
 	const ADDR: usize = 0;
 	const LINE: usize = 12;
 	const INSTR: usize = 14;
-	const STACK: usize = 40;
+	const STACK: usize = 45;
 
 	pub fn new() -> Self {
 		Self {
@@ -77,7 +77,7 @@ impl Disassembler {
 	}
 
 	pub fn write_value(&self, value: Value) {
-		let data = format!(" <{}>", value);
+		let data = format!(" <{}>", value.fmt_to_string());
 		self.write(data, Left);
 	}
 

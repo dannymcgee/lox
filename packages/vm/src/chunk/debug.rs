@@ -21,6 +21,10 @@ impl fmt::Debug for OpCode {
 			Self::Constant   => "CONSTANT",
 			Self::Constant16 => "CONSTANT_16",
 			Self::Constant24 => "CONSTANT_24",
+			Self::Add        => "ADD",
+			Self::Subtract   => "SUBTRACT",
+			Self::Multiply   => "MULTIPLY",
+			Self::Divide     => "DIVIDE",
 			Self::Negate     => "NEGATE",
 			Self::Return     => "RETURN",
 		};

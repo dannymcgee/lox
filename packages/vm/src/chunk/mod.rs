@@ -27,7 +27,11 @@ pub enum OpCode {
 	Constant   = 0x00,
 	Constant16 = 0x01,
 	Constant24 = 0x02,
-	Negate     = 0x10,
+	Add        = 0x10,
+	Subtract   = 0x11,
+	Multiply   = 0x12,
+	Divide     = 0x13,
+	Negate     = 0x14,
 	Return     = 0xFF,
 }
 
@@ -41,7 +45,11 @@ impl TryFrom<u8> for OpCode {
 			0x00 => Ok(OpCode::Constant),
 			0x01 => Ok(OpCode::Constant16),
 			0x02 => Ok(OpCode::Constant24),
-			0x10 => Ok(OpCode::Negate),
+			0x10 => Ok(OpCode::Add),
+			0x11 => Ok(OpCode::Subtract),
+			0x12 => Ok(OpCode::Multiply),
+			0x13 => Ok(OpCode::Divide),
+			0x14 => Ok(OpCode::Negate),
 			0xFF => Ok(OpCode::Return),
 			_ => Err(OpCodeError(format!("UNKNOWN: {:#04x}", byte))),
 		}

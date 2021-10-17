@@ -3,6 +3,8 @@ use std::{
 	fmt, mem, ptr,
 };
 
+use crate::value::Value;
+
 #[cfg(test)]
 mod tests;
 
@@ -79,24 +81,54 @@ impl<T> Drop for Stack<T> {
 	}
 }
 
+pub trait FmtStackElement {
+	fn fmt_value(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		write!(f, "{}", self.fmt_to_string())
+	}
+
+	fn fmt_to_string(&self) -> String;
+}
+
 impl<T> fmt::Debug for Stack<T>
-where T: fmt::Debug
+where T: FmtStackElement
 {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		let begin = self.begin;
-		let mut end = self.end;
-		let mut first = true;
+		let mut ptr = self.begin;
+		let end = self.end;
 
 		write!(f, "[")?;
-		while end != begin {
-			if !first {
+		while ptr != end {
+			if ptr != self.begin {
 				write!(f, ", ")?;
 			}
-			first = false;
 
-			end = unsafe { end.sub(1) };
-			write!(f, "{:?}", unsafe { &*end })?;
+			let value = unsafe { &*ptr };
+			value.fmt_value(f)?;
+
+			ptr = unsafe { ptr.add(1) };
 		}
 		write!(f, "]")
+	}
+}
+
+impl FmtStackElement for Value {
+	fn fmt_to_string(&self) -> String {
+		let prec = if self.abs() % 1. < f64::EPSILON {
+			0
+		} else if self.abs() * 10. % 1. < f64::EPSILON {
+			1
+		} else if self.abs() * 100. % 1. < f64::EPSILON {
+			2
+		} else {
+			3
+		};
+
+		format!("{1:.0$}", prec, self)
+	}
+}
+
+impl FmtStackElement for &str {
+	fn fmt_to_string(&self) -> String {
+		format!(r#""{}""#, self)
 	}
 }

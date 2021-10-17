@@ -44,12 +44,17 @@ fn it_supports_fmt_debug() {
 	stack.push("baz");
 
 	let debug = format!("{:?}", stack);
-	assert_eq!(&debug, r#"["baz", "bar", "foo"]"#);
+	assert_eq!(&debug, r#"["foo", "bar", "baz"]"#);
 
 	stack.pop().unwrap();
 
 	let debug = format!("{:?}", stack);
-	assert_eq!(&debug, r#"["bar", "foo"]"#);
+	assert_eq!(&debug, r#"["foo", "bar"]"#);
+
+	stack.push("Lorem Ipsum");
+
+	let debug = format!("{:?}", stack);
+	assert_eq!(&debug, r#"["foo", "bar", "Lorem Ipsum"]"#);
 
 	stack.empty();
 
