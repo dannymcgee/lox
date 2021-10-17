@@ -34,8 +34,10 @@ use self::{lines::Lines, value::Value};
 #[repr(u8)]
 #[rustfmt::skip]
 pub enum OpCode {
-	Constant = 0x00,
-	Return   = 0x01,
+	Return     = 0x00,
+	Constant   = 0x01,
+	Constant16 = 0x02,
+	Constant24 = 0x03,
 }
 
 pub struct OpCodeError(pub String);
@@ -45,8 +47,10 @@ impl TryFrom<u8> for OpCode {
 
 	fn try_from(value: u8) -> Result<Self, Self::Error> {
 		match value {
-			0x00 => Ok(OpCode::Constant),
-			0x01 => Ok(OpCode::Return),
+			0x00 => Ok(OpCode::Return),
+			0x01 => Ok(OpCode::Constant),
+			0x02 => Ok(OpCode::Constant16),
+			0x03 => Ok(OpCode::Constant24),
 			_ => Err(OpCodeError(format!("UNKNOWN: {:#04x}", value))),
 		}
 	}
@@ -67,12 +71,44 @@ impl Chunk {
 		}
 	}
 
-	pub fn write(&mut self, byte: u8, line: usize) {
+	pub fn write_instr(&mut self, op: OpCode, line: usize) {
+		self.write(op as u8, line);
+	}
+
+	pub fn write_const(&mut self, value: Value, line: usize) {
+		let handle = self.add_constant(value);
+
+		match handle {
+			0..=255 => {
+				self.write(OpCode::Constant as u8, line);
+				self.write(handle as u8, line);
+			}
+			256..=65_535 => {
+				self.write(OpCode::Constant16 as u8, line);
+				let bytes = (handle as u16).to_be_bytes();
+				self.extend(&bytes, line);
+			}
+			_ => {
+				self.write(OpCode::Constant24 as u8, line);
+				let [_, b, c, d] = (handle as u32).to_be_bytes();
+				self.extend(&[b, c, d], line);
+			}
+		}
+	}
+
+	fn write(&mut self, byte: u8, line: usize) {
 		self.data.push(byte);
 		self.lines.add_byte(line, self.data.len() - 1);
 	}
 
-	pub fn add_constant(&mut self, value: Value) -> usize {
+	fn extend(&mut self, bytes: &[u8], line: usize) {
+		self.lines.add_byte(line, self.data.len());
+		for byte in bytes.iter() {
+			self.data.push(*byte);
+		}
+	}
+
+	fn add_constant(&mut self, value: Value) -> usize {
 		self.constants.push(value);
 		self.constants.len() - 1
 	}

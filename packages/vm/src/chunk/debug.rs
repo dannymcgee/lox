@@ -1,6 +1,8 @@
 use std::{
 	convert::TryFrom,
 	fmt::{self, Alignment},
+	iter::Enumerate,
+	slice::Iter,
 };
 
 use crate::chunk::OpCodeError;
@@ -33,9 +35,20 @@ impl fmt::Debug for Chunk {
 			match OpCode::try_from(*byte) {
 				// For constants, we also print the index of the value in the pool,
 				// followed by the value itself
-				Ok(op @ OpCode::Constant) => {
-					let (_, value_idx) = stream.next().ok_or(fmt::Error)?;
-					let value = self.constants[*value_idx as usize];
+				Ok(
+					op @ OpCode::Constant
+					| op @ OpCode::Constant16
+					| op @ OpCode::Constant24,
+				) => {
+					let value_idx = match op {
+						OpCode::Constant => get_value_index(&mut stream, 1),
+						OpCode::Constant16 => get_value_index(&mut stream, 2),
+						OpCode::Constant24 => get_value_index(&mut stream, 3),
+						_ => unreachable!(),
+					}
+					.ok_or(fmt::Error)?;
+
+					let value = self.constants[value_idx];
 
 					write!(f, "{:<16?}  [{}] '{}'", op, value_idx, value)
 				}
@@ -53,11 +66,34 @@ impl fmt::Debug for Chunk {
 	}
 }
 
+fn get_value_index(stream: &mut Enumerate<Iter<u8>>, byte_count: usize) -> Option<usize> {
+	match byte_count {
+		1 => {
+			let (_, idx) = stream.next()?;
+			Some(*idx as usize)
+		}
+		2 => {
+			let (_, a) = stream.next()?;
+			let (_, b) = stream.next()?;
+			Some(u16::from_be_bytes([*a, *b]) as usize)
+		}
+		3 => {
+			let (_, b) = stream.next()?;
+			let (_, c) = stream.next()?;
+			let (_, d) = stream.next()?;
+			Some(u32::from_be_bytes([0, *b, *c, *d]) as usize)
+		}
+		_ => None,
+	}
+}
+
 impl fmt::Debug for OpCode {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		let name = match self {
-			Self::Constant => "CONSTANT",
 			Self::Return => "RETURN",
+			Self::Constant => "CONSTANT",
+			Self::Constant16 => "CONSTANT_16",
+			Self::Constant24 => "CONSTANT_24",
 		};
 		print_aligned(f, name)
 	}
