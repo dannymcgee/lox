@@ -116,7 +116,7 @@
 				"start": {
 					"builder": "@nrwl/workspace:run-commands",
 					"options": {
-						"command": "cargo run -p vm -- {args}"
+						"command": "cargo run -p vm --"
 					}
 				},
 				"test": {

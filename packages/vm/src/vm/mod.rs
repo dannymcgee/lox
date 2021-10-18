@@ -1,14 +1,16 @@
 use std::{cell::UnsafeCell, convert::TryFrom};
 
 use crate::{
-	chunk::{self, Chunk, JoinBytes, OpCode},
+	chunk::{self, JoinBytes, OpCode},
+	compiler,
 	stack::Stack,
 	value::Value,
 };
 
-use self::debug::Disassembler;
+use self::{debug::Disassembler, error::Error};
 
 mod debug;
+mod error;
 
 // TODO: https://github.com/munificent/craftinginterpreters/blob/6c2ea6f7192910053a78832f0cc34ad56b17ce7c/book/a-virtual-machine.md?plain=1#L50
 lazy_static! {
@@ -17,14 +19,6 @@ lazy_static! {
 
 pub fn get() -> &'static VM {
 	&INSTANCE
-}
-
-pub type Result = std::result::Result<(), Error>;
-
-#[derive(Debug)]
-pub enum Error {
-	Compile,
-	Runtime,
 }
 
 pub struct VM {
@@ -50,15 +44,17 @@ macro_rules! binop {
 }
 
 impl VM {
-	pub fn interpret(&self, chunk: Chunk) -> Result {
+	pub fn interpret(&self, src: String) -> anyhow::Result<()> {
+		let chunk = compiler::compile(src)?;
 		unsafe {
 			let ip = &mut *self.ip.get();
 			*ip = Some(chunk.into_iter());
 		}
+
 		self.run()
 	}
 
-	fn run(&self) -> Result {
+	fn run(&self) -> anyhow::Result<()> {
 		use OpCode::*;
 
 		let (ip, stack) = unsafe { (&mut *self.ip.get(), &mut *self.stack.get()) };
