@@ -6,6 +6,9 @@ pub type Stream<'a> = ParseStream<'a, Token<'a>, Lexer<'a>>;
 
 #[derive(Clone, Copy, DebugLispToken, Token, Lexer)]
 pub enum Token<'a> {
+	#[pattern = r"//[^\n\r]*"]
+	Comment(&'a str, Span),
+
 	#[pattern = r"(and|class|else|false|for|fun|if|nil|or|print|return|super|this|true|var|while)\b"]
 	Keyword(&'a str, Span),
 

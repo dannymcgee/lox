@@ -57,6 +57,7 @@ impl TryFrom<u8> for OpCode {
 }
 
 pub struct Chunk {
+	source: String,
 	data: Vector<u8>,
 	constants: Vector<Value>,
 	lines: Lines,
@@ -65,6 +66,7 @@ pub struct Chunk {
 impl Chunk {
 	pub fn new() -> Self {
 		Self {
+			source: String::new(),
 			data: vector![],
 			constants: vector![],
 			lines: Lines::new(),
@@ -94,6 +96,10 @@ impl Chunk {
 				self.extend(&[b, c, d], line);
 			}
 		}
+	}
+
+	pub fn set_source(&mut self, src: String) {
+		self.source = src;
 	}
 
 	fn write(&mut self, byte: u8, line: usize) {

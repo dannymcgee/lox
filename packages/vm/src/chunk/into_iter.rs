@@ -8,6 +8,7 @@ use crate::{
 use super::{lines::Lines, Chunk};
 
 pub struct Consumable {
+	source: String,
 	data: IntoIter<u8>,
 	offset: usize,
 	constants: Vector<Value>,
@@ -22,6 +23,7 @@ impl IntoIterator for Chunk {
 		unsafe {
 			let chunk = ptr::read(&self);
 
+			let source = chunk.source;
 			let data = chunk.data.into_iter();
 			let constants = chunk.constants;
 			let lines = chunk.lines;
@@ -29,6 +31,7 @@ impl IntoIterator for Chunk {
 			mem::forget(self);
 
 			Consumable {
+				source,
 				data,
 				offset: 0,
 				constants,

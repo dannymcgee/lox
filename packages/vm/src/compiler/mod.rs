@@ -9,7 +9,12 @@ use self::lexer::Stream;
 mod lexer;
 
 pub fn compile(src: String) -> anyhow::Result<Chunk> {
-	let chunk = Stream::from(src).parse::<Chunk>()?;
+	let mut stream = Stream::from(src);
+	let mut chunk = stream.parse::<Chunk>()?;
+
+	let (src, _) = stream.into_inner();
+	chunk.set_source(src);
+
 	Ok(chunk)
 }
 
