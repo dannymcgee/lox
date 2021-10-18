@@ -1,5 +1,5 @@
 import * as Path from 'path';
-import * as FS from 'fs-extra';
+import * as fs from "fs";
 
 export class AstGenerator {
 	static dryRun: boolean;
@@ -73,7 +73,7 @@ export class AstGenerator {
 		fileContent += this.defineTypes(types, baseName);
 
 		if (this.dryRun) console.log('fileContent:\n', fileContent);
-		else FS.writeFileSync(path, fileContent);
+		else fs.writeFileSync(path, fileContent);
 	}
 
 	// prettier-ignore

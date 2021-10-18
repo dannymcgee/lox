@@ -1,10 +1,10 @@
 import * as Path from 'path';
-import * as Util from 'util';
-import * as FS from 'fs-extra';
-import * as Chalk from 'chalk';
+import * as util from 'util';
+import * as fs from 'fs';
+import * as chalk from 'chalk';
 import { createInterface, ReadLine } from 'readline';
 
-Util.inspect.styles = {
+util.inspect.styles = {
 	bigint: 'cyan',
 	boolean: 'magenta',
 	date: 'orange',
@@ -59,8 +59,8 @@ class Lox {
 
 	private static runFile(path: string): void {
 		let resolved = Path.resolve(process.cwd(), path);
-		let content = FS.readFileSync(resolved);
-		let prefix = Chalk.bold('Running file:');
+		let content = fs.readFileSync(resolved);
+		let prefix = chalk.bold('Running file:');
 		console.clear();
 		console.log(`${prefix} ${resolved}`);
 
@@ -77,11 +77,11 @@ class Lox {
 		ErrorReporter.hadError = false;
 
 		if (!previousResult) console.clear();
-		console.log(Chalk.bold('Enter some Lox code to run it'));
+		console.log(chalk.bold('Enter some Lox code to run it'));
 		if (previousResult) this.print(previousResult);
 		console.log('');
 
-		this.rl.question(Chalk.bold.blue('> '), (input) => {
+		this.rl.question(chalk.bold.blue('> '), (input) => {
 			console.clear();
 			let result = this.run(input);
 
@@ -90,9 +90,9 @@ class Lox {
 	}
 
 	private static print(content: string): void {
-		let prefix = Chalk.bold.cyan('=>');
+		let prefix = chalk.bold.cyan('=>');
 
-		console.log(`${prefix} ${Chalk.gray(content)}`);
+		console.log(`${prefix} ${chalk.gray(content)}`);
 	}
 
 	private static run(source: Buffer | string): string {
@@ -107,10 +107,10 @@ class Lox {
 
 			// return formatAst(ast).replace(/\n/g, '\n   ');
 			this.interpreter.interpret(ast);
-			output = Chalk.bold.inverse.greenBright(' DONE ');
+			output = chalk.bold.inverse.greenBright(' DONE ');
 		} catch (err) {
 			if (err instanceof RuntimeError || err instanceof Return)
-				return Chalk.bold.redBright(' ERROR ');
+				return chalk.bold.redBright(' ERROR ');
 			throw err;
 		}
 		return output;

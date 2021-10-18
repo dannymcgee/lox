@@ -1,4 +1,4 @@
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
 import * as Path from 'path';
 import * as chalk from 'chalk';
 import { JsonObject, TMGrammar, TMGrammarScope } from '../lib/types';
@@ -33,7 +33,9 @@ async function generate(grammar: TMGrammar, name: string) {
 	);
 
 	try {
-		fs.ensureDirSync(dirname);
+		if (!fs.existsSync(dirname)) {
+			fs.mkdirSync(dirname, { recursive: true });
+		}
 		fs.writeFileSync(
 			Path.resolve(dirname, `${name}.tmLanguage.json`),
 			content,
