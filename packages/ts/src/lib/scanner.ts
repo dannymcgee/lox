@@ -7,7 +7,7 @@ const KEYWORDS: ReadonlyMap<string, TokenType> = new Map([
 	['else', TokenType.Else],
 	['false', TokenType.False],
 	['for', TokenType.For],
-	['fn', TokenType.Fn],
+	['fun', TokenType.Fun],
 	['if', TokenType.If],
 	['nil', TokenType.Nil],
 	['or', TokenType.Or],

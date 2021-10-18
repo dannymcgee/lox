@@ -12,7 +12,7 @@ export interface Visitor<R> {
 	visitBlockStmt(stmt: Block): R;
 	visitClassStmt(stmt: Class): R;
 	visitExpressionStmt(stmt: Expression): R;
-	visitFnStmt(stmt: Fn): R;
+	visitFunStmt(stmt: Fun): R;
 	visitIfStmt(stmt: If): R;
 	visitPrintStmt(stmt: Print): R;
 	visitReturnStmt(stmt: Return): R;
@@ -35,10 +35,10 @@ export class Block extends Stmt {
 
 export class Class extends Stmt {
 	readonly name: Token;
-	readonly methods: Fn[];
+	readonly methods: Fun[];
 	readonly superclass?: Expr.Variable;
 
-	constructor(name: Token, methods: Fn[], superclass?: Expr.Variable) {
+	constructor(name: Token, methods: Fun[], superclass?: Expr.Variable) {
 		super();
 		this.name = name;
 		this.methods = methods;
@@ -63,18 +63,18 @@ export class Expression extends Stmt {
 	}
 }
 
-export class Fn extends Stmt {
+export class Fun extends Stmt {
 	readonly name: Token;
-	readonly func: Expr.Fn;
+	readonly func: Expr.Fun;
 
-	constructor(name: Token, func: Expr.Fn) {
+	constructor(name: Token, func: Expr.Fun) {
 		super();
 		this.name = name;
 		this.func = func;
 	}
 
 	accept<R>(visitor: Visitor<R>): R {
-		return visitor.visitFnStmt(this);
+		return visitor.visitFunStmt(this);
 	}
 }
 
@@ -152,3 +152,4 @@ export class While extends Stmt {
 		return visitor.visitWhileStmt(this);
 	}
 }
+

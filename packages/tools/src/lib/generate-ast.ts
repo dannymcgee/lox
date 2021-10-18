@@ -12,7 +12,7 @@ export class AstGenerator {
 		this.defineAst(outputDir, 'Expr', [
 			`Assign   | name: Token, value: Expr`,
 			`Binary   | left: Expr, operator: Token, right: Expr`,
-			`Fn       | params: Token[], body: Stmt.Stmt[]`,
+			`Fun      | params: Token[], body: Stmt.Stmt[]`,
 			`Call     | callee: Expr, paren: Token, args: Expr[]`,
 			`Get      | obj: Expr, name: Token`,
 			`Grouping | expression: Expr`,
@@ -31,9 +31,9 @@ export class AstGenerator {
 		// prettier-ignore
 		this.defineAst(outputDir, 'Stmt', [
 			`Block      | statements: Stmt[]`,
-			`Class      | name: Token, methods: Fn[], superclass?: Expr.Variable`,
+			`Class      | name: Token, methods: Fun[], superclass?: Expr.Variable`,
 			`Expression | expression: Expr.Expr`,
-			`Fn         | name: Token, func: Expr.Fn`,
+			`Fun        | name: Token, func: Expr.Fun`,
 			`If         | condition: Expr.Expr, thenBranch: Stmt, elseBranch: Stmt`,
 			`Print      | expression: Expr.Expr`,
 			`Return     | keyword: Token, value: Expr.Expr`,

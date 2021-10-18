@@ -1,13 +1,13 @@
-(fn() {
+(fun () {
 	print "IIFE!";
 })();
 
-fn thrice(func) {
+fun thrice(func) {
 	for (var i = 0; i < 3; i = i + 1) {
 		func(i);
 	}
 }
 
-thrice(fn(i) {
+thrice(fun (i) {
 	print i;
 });

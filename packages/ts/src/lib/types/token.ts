@@ -12,7 +12,7 @@ export enum TokenType {
 	// Literals
 	Identifier, String, Number,
 	// Keywords
-	And, Class, Else, False, Fn, For, If, Nil, Or, Print, Return, Super, This,
+	And, Class, Else, False, Fun, For, If, Nil, Or, Print, Return, Super, This,
 	True, Var, While,
 	// Error
 	Unknown,

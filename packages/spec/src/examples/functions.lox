@@ -1,10 +1,10 @@
 // definition
-fn printSum(a, b) {
+fun printSum(a, b) {
 	print a + b;
 }
 
 // return
-fn returnSum(a, b) {
+fun returnSum(a, b) {
 	return a + b;
 }
 
@@ -13,35 +13,35 @@ printSum(400, 20);
 print returnSum(60, 9);
 
 // lambdas
-var sumLambda = fn (a, b) {
+var sumLambda = fun (a, b) {
 	return a + b;
 };
 print sumLambda(40, 2);
 
 // TODO: arrow shorthand
-// fn returnSum(a, b) => a + b;
-// fn(a, b) => a + b;
+// fun returnSum(a, b) => a + b;
+// fun(a, b) => a + b;
 
 // closures
-fn addPairs(a, b) {
+fun addPairs(a, b) {
 	return a + b;
 }
-fn identity(a) {
+fun identity(a) {
 	return a;
 }
 print identity(addPairs)(1, 2); // => 3
 
-fn outerFunction() {
-	fn localFunction () {
+fun outerFunction() {
+	fun localFunction () {
 		print "I'm local!";
 	}
 	localFunction();
 }
 outerFunction();
 
-fn returnFunction() {
+fun returnFunction() {
 	var outside = "outside";
-	fn inner() {
+	fun inner() {
 		print outside;
 	}
 
@@ -50,7 +50,7 @@ fn returnFunction() {
 var foo = returnFunction();
 foo();
 
-fn init() {
+fun init() {
 	return "Uh oh, I'm not a class method!";
 }
 

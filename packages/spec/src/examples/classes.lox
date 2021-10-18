@@ -9,7 +9,7 @@ class Breakfast {
 }
 
 // first-class status
-fn printClass(klass) {
+fun printClass(klass) {
 	print klass;
 }
 

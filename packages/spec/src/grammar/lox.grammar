@@ -1,13 +1,13 @@
 program     -> declaration* EOF ;
 
 declaration -> classDecl
-             | fnDecl
+             | funDecl
              | varDecl
              | statement ;
 
-classDecl   -> 'class' IDENTIFIER ( '<' IDENTIFIER )? '{' ( IDENTIFIER fnBody )* '}' ;
-fnDecl      -> 'fn' IDENTIFIER fnBody ;
-fnBody      -> '(' parameters? ')' block;
+classDecl   -> 'class' IDENTIFIER ( '<' IDENTIFIER )? '{' ( IDENTIFIER funBody )* '}' ;
+funDecl      -> 'fun' IDENTIFIER funBody ;
+funBody      -> '(' parameters? ')' block;
 parameters  -> IDENTIFIER ( ',' IDENTIFIER )* ;
 varDecl     -> 'var' IDENTIFIER ( '=' expression )? ';' ;
 
@@ -44,7 +44,7 @@ unary       -> ( '!' | '-' ) unary | call ;
 call        -> primary ( '(' arguments? ')' | '.' IDENTIFIER )* ;
 arguments   -> expression ( ',' expression )* ;
 primary     -> 'true' | 'false' | 'nil' | 'this'
-             | 'fn' fnBody
+             | 'fun' funBody
              | NUMBER | STRING | IDENTIFIER | '(' expression ')'
              | 'super' '.' IDENTIFIER ;
 

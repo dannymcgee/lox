@@ -11,7 +11,7 @@ export abstract class Expr {
 export interface Visitor<R> {
 	visitAssignExpr(expr: Assign): R;
 	visitBinaryExpr(expr: Binary): R;
-	visitFnExpr(expr: Fn): R;
+	visitFunExpr(expr: Fun): R;
 	visitCallExpr(expr: Call): R;
 	visitGetExpr(expr: Get): R;
 	visitGroupingExpr(expr: Grouping): R;
@@ -56,7 +56,7 @@ export class Binary extends Expr {
 	}
 }
 
-export class Fn extends Expr {
+export class Fun extends Expr {
 	readonly params: Token[];
 	readonly body: Stmt.Stmt[];
 
@@ -67,7 +67,7 @@ export class Fn extends Expr {
 	}
 
 	accept<R>(visitor: Visitor<R>): R {
-		return visitor.visitFnExpr(this);
+		return visitor.visitFunExpr(this);
 	}
 }
 
@@ -218,3 +218,4 @@ export class Variable extends Expr {
 		return visitor.visitVariableExpr(this);
 	}
 }
+

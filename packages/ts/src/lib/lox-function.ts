@@ -6,10 +6,10 @@ import { LoxInstance } from './lox-class';
 
 export class LoxFunction implements Invokable {
 	readonly name?: string;
-	private readonly func: Expr.Fn;
+	private readonly func: Expr.Fun;
 	private readonly closure: Environment;
 
-	constructor(func: Expr.Fn, closure: Environment, name?: string) {
+	constructor(func: Expr.Fun, closure: Environment, name?: string) {
 		this.func = func;
 		this.closure = closure;
 		this.name = name;
@@ -44,7 +44,7 @@ export class LoxFunction implements Invokable {
 	}
 
 	toString(): string {
-		if (this.name) return `<fn ${this.name}>`;
-		return `<fn>`;
+		if (this.name) return `<fun ${this.name}>`;
+		return `<fun>`;
 	}
 }

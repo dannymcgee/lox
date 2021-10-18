@@ -59,7 +59,7 @@ export class Parser {
 	private declaration(): Stmt.Stmt {
 		try {
 			if (this.match(TokenType.Class)) return this.classDeclaration();
-			if (this.matchFnDecl()) return this.fnDeclaration('function');
+			if (this.matchfunDecl()) return this.funDeclaration('function');
 			if (this.match(TokenType.Var)) return this.varDeclaration();
 			return this.statement();
 		} catch (err) {
@@ -79,16 +79,16 @@ export class Parser {
 		}
 
 		this.consume(TokenType.LeftBrace, `Expected '{' before class body.`);
-		let methods: Stmt.Fn[] = [];
+		let methods: Stmt.Fun[] = [];
 		while (!this.check(TokenType.RightBrace) && !this.atEnd())
-			methods.push(this.fnDeclaration('method'));
+			methods.push(this.funDeclaration('method'));
 		this.consume(TokenType.RightBrace, `Expected '}' after class body.`);
 
 		return new Stmt.Class(name, methods, superclass);
 	}
-	private fnDeclaration(kind: string): Stmt.Fn {
+	private funDeclaration(kind: string): Stmt.Fun {
 		let name = this.consume(TokenType.Identifier, `Expected ${kind} name.`);
-		return new Stmt.Fn(name, this.fnExpression(kind));
+		return new Stmt.Fun(name, this.funExpression(kind));
 	}
 	private varDeclaration(): Stmt.Stmt {
 		let name = this.consume(
@@ -241,11 +241,11 @@ export class Parser {
 		}
 		return this.call();
 	}
-	private fnExpression(kind: string): Expr.Fn {
+	private funExpression(kind: string): Expr.Fun {
 		// Params
 		this.consume(
 			TokenType.LeftParen,
-			`Expected name or '(' after 'fn' keyword.`,
+			`Expected name or '(' after 'fun' keyword.`,
 		);
 		let params: Token[] = [];
 		if (!this.check(TokenType.RightParen)) {
@@ -269,7 +269,7 @@ export class Parser {
 		this.consume(TokenType.LeftBrace, `Expected '{' before ${kind} body.`);
 		let body: Stmt.Stmt[] = this.block();
 
-		return new Expr.Fn(params, body);
+		return new Expr.Fun(params, body);
 	}
 	private call(): Expr.Expr {
 		let expr = this.primary();
@@ -330,7 +330,7 @@ export class Parser {
 			return new Expr.Variable(this.previous());
 
 		// Function expression
-		if (this.match(TokenType.Fn)) return this.fnExpression('function');
+		if (this.match(TokenType.Fun)) return this.funExpression('function');
 
 		// Paren group
 		if (this.match(TokenType.LeftParen)) {
@@ -351,7 +351,7 @@ export class Parser {
 			if (this.previous().type === TokenType.Semicolon) return;
 			switch (this.peek().type) {
 				case TokenType.Class:
-				case TokenType.Fn:
+				case TokenType.Fun:
 				case TokenType.Var:
 				case TokenType.For:
 				case TokenType.If:
@@ -408,9 +408,9 @@ export class Parser {
 		}
 		return false;
 	}
-	private matchFnDecl(): boolean {
-		if (this.check(TokenType.Fn) && this.checkNext(TokenType.Identifier)) {
-			this.consume(TokenType.Fn, '');
+	private matchfunDecl(): boolean {
+		if (this.check(TokenType.Fun) && this.checkNext(TokenType.Identifier)) {
+			this.consume(TokenType.Fun, '');
 			return true;
 		}
 		return false;

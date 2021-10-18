@@ -25,7 +25,7 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 					return new Date().getTime();
 				}
 				toString(): string {
-					return '<native fn>';
+					return '<native fun>';
 				}
 			})(),
 		);
@@ -46,7 +46,7 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 					return `${obj}`;
 				}
 				toString(): string {
-					return '<native fn>';
+					return '<native fun>';
 				}
 			})(),
 		);
@@ -78,9 +78,9 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 	visitExpressionStmt(stmt: Stmt.Expression): void {
 		this.evaluate(stmt.expression);
 	}
-	visitFnStmt(stmt: Stmt.Fn): void {
-		let fn = new LoxFunction(stmt.func, this.env, stmt.name.lexeme);
-		this.env.define(stmt.name.lexeme, fn);
+	visitFunStmt(stmt: Stmt.Fun): void {
+		let fun = new LoxFunction(stmt.func, this.env, stmt.name.lexeme);
+		this.env.define(stmt.name.lexeme, fun);
 	}
 	visitIfStmt(stmt: Stmt.If): void {
 		if (this.isTruthy(this.evaluate(stmt.condition)))
@@ -193,7 +193,7 @@ export class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<void> {
 	visitThisExpr(expr: Expr.This): Object {
 		return this.lookUpVar(expr.keyword, expr);
 	}
-	visitFnExpr(expr: Expr.Fn): Object {
+	visitFunExpr(expr: Expr.Fun): Object {
 		return new LoxFunction(expr, this.env);
 	}
 	visitGroupingExpr(expr: Expr.Grouping): Object {
@@ -359,12 +359,12 @@ export function formatValue(result: Object): string {
 		if (result.name) {
 			return [
 				Chalk.grey('<'),
-				Chalk.magenta('fn '),
+				Chalk.magenta('fun '),
 				Chalk.bold.blueBright(result.name),
 				Chalk.grey('>'),
 			].join('');
 		}
-		return [Chalk.grey('<'), Chalk.magenta('fn'), Chalk.grey('>')].join('');
+		return [Chalk.grey('<'), Chalk.magenta('fun'), Chalk.grey('>')].join('');
 	}
 	if (result instanceof LoxClass) {
 		return [

@@ -13,7 +13,7 @@ export const identifiers: TMGrammarScope = {
 		},
 		// function
 		{
-			match: /\b(?<=fn)\s+([a-zA-Z]+)\b/,
+			match: /\b(?<=fun)\s+([a-zA-Z]+)\b/,
 			captures: {
 				1: { name: 'entity.name.function' },
 			},

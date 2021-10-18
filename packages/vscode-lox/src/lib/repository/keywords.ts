@@ -3,7 +3,7 @@ import { TMGrammarScope } from '../types';
 export const keywords: TMGrammarScope = {
 	patterns: [
 		{
-			match: /\b(print|var|class|fn|and|or|init)\b/,
+			match: /\b(print|var|class|fun|and|or|init)\b/,
 			name: 'keyword.$1.lox',
 		},
 		{

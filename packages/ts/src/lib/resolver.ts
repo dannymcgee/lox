@@ -42,16 +42,16 @@ export class Resolver implements Stmt.Visitor<void>, Expr.Visitor<void> {
 			}
 		}
 	}
-	private resolveFunction(fn: Expr.Fn, type: FunctionType): void {
+	private resolveFunction(fun: Expr.Fun, type: FunctionType): void {
 		let enclosing = this.currentFunction;
 		this.currentFunction = type;
 
 		this.beginScope();
-		for (let param of fn.params) {
+		for (let param of fun.params) {
 			this.declare(param);
 			this.define(param);
 		}
-		this.resolve(fn.body);
+		this.resolve(fun.body);
 		this.endScope();
 
 		this.currentFunction = enclosing;
@@ -100,7 +100,7 @@ export class Resolver implements Stmt.Visitor<void>, Expr.Visitor<void> {
 	visitExpressionStmt(stmt: Stmt.Expression): void {
 		this.resolve(stmt.expression);
 	}
-	visitFnStmt(stmt: Stmt.Fn): void {
+	visitFunStmt(stmt: Stmt.Fun): void {
 		this.declare(stmt.name);
 		this.define(stmt.name);
 		this.resolveFunction(stmt.func, FunctionType.Function);
@@ -148,7 +148,7 @@ export class Resolver implements Stmt.Visitor<void>, Expr.Visitor<void> {
 		this.resolve(expr.left);
 		this.resolve(expr.right);
 	}
-	visitFnExpr(expr: Expr.Fn): void {
+	visitFunExpr(expr: Expr.Fun): void {
 		this.resolveFunction(expr, FunctionType.Function);
 	}
 	visitCallExpr(expr: Expr.Call): void {

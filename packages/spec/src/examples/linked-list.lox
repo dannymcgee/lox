@@ -38,7 +38,7 @@ class List {
 }
 
 // Iteration helper
-fn forEach(callback, list) {
+fun forEach(callback, list) {
 	for (
 		var current = list.next();
 		current.next() != nil;
@@ -48,9 +48,9 @@ fn forEach(callback, list) {
 }
 
 // Map function
-fn map(transform, list) {
+fun map(transform, list) {
 	var result = List();
-	forEach(fn (current) {
+	forEach(fun (current) {
 		result.add(transform(current));
 	}, list);
 
@@ -60,18 +60,18 @@ fn map(transform, list) {
 var nums = List();
 for (var i = 0; i < 10; i = i + 1) nums.add(i);
 
-var squares = map(fn (current) {
+var squares = map(fun (current) {
 	return current * current;
 }, nums);
 
 print "Squares:";
-forEach(fn (val) { print val; }, squares);
+forEach(fun (val) { print val; }, squares);
 print "";
 
 // Reduce function
-fn reduce(reducer, initial, list) {
+fun reduce(reducer, initial, list) {
 	var result = initial;
-	forEach(fn (item) {
+	forEach(fun (item) {
 		result = reducer(result, item);
 	}, list);
 
@@ -79,16 +79,16 @@ fn reduce(reducer, initial, list) {
 }
 
 print "Sum of squares:";
-var sum = reduce(fn (accum, current) {
+var sum = reduce(fun (accum, current) {
 	return accum + current;
 }, 0, squares);
 print sum;
 print "";
 
 // filter
-fn filter(predicate, list) {
+fun filter(predicate, list) {
 	var result = List();
-	forEach(fn (current) {
+	forEach(fun (current) {
 		if (predicate(current))
 			result.add(current);
 	}, list);
@@ -110,22 +110,22 @@ birds.add("Duck");
 birds.add("Duck");
 birds.add("Goose");
 
-var ducks = filter(fn (bird) {
+var ducks = filter(fun (bird) {
 	return bird != "Goose";
 }, birds);
 
-var geese = filter(fn (bird) {
+var geese = filter(fun (bird) {
 	return bird == "Goose";
 }, birds);
 
 print "Birds:";
-forEach(fn (bird) { print bird; }, birds);
+forEach(fun (bird) { print bird; }, birds);
 print "";
 
 print "Ducks:";
-forEach(fn (duck) { print duck; }, ducks);
+forEach(fun (duck) { print duck; }, ducks);
 print "";
 
 print "Geese:";
-forEach(fn (goose) { print goose; }, geese);
+forEach(fun (goose) { print goose; }, geese);
 print "";

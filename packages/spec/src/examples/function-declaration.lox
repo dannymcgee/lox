@@ -1,4 +1,4 @@
-fn hello(name) {
+fun hello(name) {
 	print "Hello, " + name + "!";
 }
 hello("world");
