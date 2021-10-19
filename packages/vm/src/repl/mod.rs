@@ -1,6 +1,8 @@
-use std::io::{self, prelude::*, Stdin, Stdout};
+use std::io::{self, prelude::*, StdoutLock};
 
-use crate::vm;
+use nu_ansi_term::Color;
+
+use crate::{cli, vm};
 
 pub fn start() -> anyhow::Result<()> {
 	for line in Repl::start() {
@@ -10,20 +12,12 @@ pub fn start() -> anyhow::Result<()> {
 	Ok(())
 }
 
-struct Repl {
-	stdin: Stdin,
-	stdout: Stdout,
-}
+struct Repl;
 
 impl Repl {
 	fn start() -> Self {
-		// Clear the terminal
-		print!("{esc}[2J{esc}[1;1H", esc = 0x1b as char);
-
-		Self {
-			stdin: io::stdin(),
-			stdout: io::stdout(),
-		}
+		cli::cls();
+		Self
 	}
 }
 
@@ -31,16 +25,31 @@ impl Iterator for Repl {
 	type Item = String;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		let mut stdout = self.stdout.lock();
-		write!(stdout, "lox > ").ok()?;
+		let mut stdout = cli::stdout();
+		stdout.prompt().ok()?;
 		stdout.flush().ok()?;
 
 		drop(stdout);
 
 		let mut buf = String::new();
-		let mut stdin = self.stdin.lock();
+		let mut stdin = cli::stdin();
 		stdin.read_line(&mut buf).ok()?;
 
 		Some(buf)
+	}
+}
+
+trait ReplPrompt {
+	fn prompt(&mut self) -> io::Result<()>;
+}
+
+impl ReplPrompt for StdoutLock<'static> {
+	fn prompt(&mut self) -> io::Result<()> {
+		write!(
+			self,
+			"{} {} ",
+			Color::LightBlue.bold().paint("lox"),
+			cli::prompt_char()
+		)
 	}
 }
