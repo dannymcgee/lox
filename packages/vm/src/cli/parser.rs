@@ -2,10 +2,14 @@ use core::fmt;
 
 use gramatika::{Parse, ParseStreamer, Span, Spanned, SpannedError, Token as _};
 
-use super::Args;
+use super::{Args, DebugFlags};
 
-pub(super) fn parse(raw_args: String) -> gramatika::Result<'static, Args> {
-	ParseStream::from(raw_args).parse()
+pub(super) fn parse(raw_args: String) -> gramatika::Result<'static, (String, Args)> {
+	let mut parser = ParseStream::from(raw_args);
+	let args = parser.parse::<Args>()?;
+	let (src, _) = parser.into_inner();
+
+	Ok((src, args))
 }
 
 type ParseStream<'a> = gramatika::ParseStream<'a, Token<'a>, Lexer<'a>>;
@@ -34,21 +38,54 @@ impl<'a> Parse<'a> for Args {
 	fn parse(input: &mut Self::Stream) -> gramatika::Result<'a, Self> {
 		use TokenKind::*;
 
-		let mut result = Args { example: None };
+		let mut result = Args {
+			example: None,
+			debug: DebugFlags::NONE,
+		};
 
 		while !input.is_empty() {
 			input.consume_kind(ArgStart)?;
 
 			let key = input.consume_kind(Word)?;
-			if key.lexeme() == "example" {
-				input.consume_kind(Equal)?;
-				result.example = Some(input.consume_kind(Word)?.lexeme().into());
-			} else {
-				return Err(SpannedError {
-					source: input.source(),
-					span: Some(key.span()),
-					message: format!("Unknown argument '{}'", key.lexeme()),
-				});
+			match key.lexeme() {
+				"example" => {
+					input.consume_kind(Equal)?;
+					result.example = Some(input.consume_kind(Word)?.lexeme().into());
+				}
+				"debug" => {
+					input.consume_kind(Equal)?;
+					while !input.check_kind(ArgStart) {
+						match input.next() {
+							Some(Token::Word("parse", _)) => {
+								result.debug |= DebugFlags::PARSE;
+							}
+							Some(Token::Word("codegen", _)) => {
+								result.debug |= DebugFlags::CODEGEN;
+							}
+							Some(Token::Word("exec", _)) => {
+								result.debug |= DebugFlags::EXEC;
+							}
+							Some(Token::Word("compile", _)) => {
+								result.debug |= DebugFlags::COMPILE;
+							}
+							Some(other) => {
+								return Err(SpannedError {
+									message: "Unrecognized debug argument".into(),
+									source: input.source(),
+									span: Some(other.span()),
+								})
+							}
+							None => break,
+						}
+					}
+				}
+				_ => {
+					return Err(SpannedError {
+						source: input.source(),
+						span: Some(key.span()),
+						message: format!("Unknown argument '{}'", key.lexeme()),
+					})
+				}
 			}
 		}
 

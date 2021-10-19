@@ -24,6 +24,25 @@
 				}
 			}
 		},
+		"macro_utils": {
+			"root": "packages/macro-utils",
+			"projectType": "library",
+			"sourceRoot": "packages/macro-utils/src",
+			"architect": {
+				"test": {
+					"builder": "@nxrs/cargo:test",
+					"options": {}
+				},
+				"lint": {
+					"builder": "@nxrs/cargo:clippy",
+					"options": {
+						"fix": false,
+						"failOnWarnings": true,
+						"noDeps": true
+					}
+				}
+			}
+		},
 		"spec": {
 			"root": "packages/spec",
 			"sourceRoot": "packages/spec/src",

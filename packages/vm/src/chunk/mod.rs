@@ -109,6 +109,7 @@ impl Chunk {
 
 	fn extend(&mut self, bytes: &[u8], line: usize) {
 		self.lines.add_byte(line, self.data.len());
+		// TODO: Add a proper Vector::extend implementation
 		for byte in bytes.iter() {
 			self.data.push(*byte);
 		}

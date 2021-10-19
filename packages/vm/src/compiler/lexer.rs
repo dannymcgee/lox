@@ -25,7 +25,7 @@ pub enum Token<'a> {
 	#[pattern = "[-+*/]"]
 	Operator(&'a str, Span),
 
-	#[pattern = "[0-9]+"]
+	#[pattern = "[0-9][.0-9]*"]
 	NumLit(&'a str, Span),
 
 	#[pattern = r#""[^"]+""#]

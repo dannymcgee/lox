@@ -4,11 +4,15 @@ use std::{
 	fmt::{Alignment, Write},
 };
 
+use nu_ansi_term::Color;
+use strip_ansi_escapes as ansi;
+
 #[cfg(debug_assertions)]
 use Alignment::*;
 
 use crate::{
 	chunk::{Lines, OpCode},
+	cli::{self, DebugFlags},
 	stack::{FmtStackElement, Stack},
 	value::Value,
 };
@@ -19,7 +23,7 @@ use crate::debug::Repeat;
 #[cfg(debug_assertions)]
 pub(super) struct Disassembler {
 	buf: UnsafeCell<String>,
-	col: UnsafeCell<usize>,
+	col: UnsafeCell<isize>,
 }
 
 // TODO - Replace messy crate::debug module with this
@@ -27,15 +31,21 @@ pub(super) struct Disassembler {
 #[cfg(debug_assertions)]
 impl Disassembler {
 	// Column offsets for the output
-	const ADDR: usize = 0;
-	const LINE: usize = 12;
-	const INSTR: usize = 14;
-	const STACK: usize = 45;
+	const ADDR: isize = 0;
+	const LINE: isize = 12;
+	const INSTR: isize = 14;
+	const STACK: isize = 45;
 
 	pub fn new() -> Self {
 		Self {
 			buf: UnsafeCell::new(String::new()),
 			col: UnsafeCell::new(Self::ADDR),
+		}
+	}
+
+	pub fn write_header(&self, name: &str) {
+		if cli::debug_flags().contains(DebugFlags::EXEC) {
+			cli::print_header("exec", name);
 		}
 	}
 
@@ -47,7 +57,10 @@ impl Disassembler {
 	fn write_offset(&self, offset: usize) {
 		self.set_col(Self::ADDR);
 
-		let data = format!("{:#06x}", offset);
+		let data = Color::DarkGray
+			.paint(format!("{:#06x}", offset))
+			.to_string();
+
 		self.write(data, Left);
 	}
 
@@ -62,7 +75,7 @@ impl Disassembler {
 		};
 
 		let data = match prev_line {
-			Some(prev) if prev == line => "|".to_string(),
+			Some(prev) if prev == line => Color::DarkGray.paint("|").to_string(),
 			_ => line.to_string(),
 		};
 
@@ -70,14 +83,23 @@ impl Disassembler {
 	}
 
 	pub fn write_opcode(&self, op: OpCode) {
+		use OpCode::*;
+
 		self.set_col(Self::INSTR);
 
-		let data = format!("{:#04x} {:?}", op as u8, op);
-		self.write(data, Left);
+		let byte = Color::DarkGray.paint(format!("{:#04x}", op as u8));
+
+		let name = format!("{:?}", op);
+		let name = match op {
+			Constant | Constant16 | Constant24 => Color::Green.paint(name),
+			_ => Color::Fixed(5).bold().paint(name),
+		};
+
+		self.write(format!("{} {}", byte, name), Left);
 	}
 
 	pub fn write_value(&self, value: Value) {
-		let data = format!(" <{}>", value.fmt_to_string());
+		let data = format!(" {}", Color::Cyan.paint(value.fmt_to_string()));
 		self.write(data, Left);
 	}
 
@@ -90,22 +112,24 @@ impl Disassembler {
 
 	pub fn flush(&self) {
 		let buf = self.buf();
-		println!("{}", buf);
+		if cli::debug_flags().contains(DebugFlags::EXEC) {
+			println!("{}", buf);
+		}
 		buf.clear();
 	}
 
 	fn write(&self, content: String, align: Alignment) {
+		let content_len = ansi::strip(&content).unwrap().len() as isize;
+		let buf_len = self.buf_len();
 		let buf = self.buf();
+
 		match align {
 			Left => {
-				let pad = (self.col() as isize - buf.len() as isize).max(0) as usize;
+				let pad = (self.col() - buf_len).max(0) as usize;
 				write!(buf, "{}{}", ' '.repeat(pad), content).unwrap();
 			}
 			Right => {
-				let pad = (self.col() as isize
-					- buf.len() as isize - content.len() as isize)
-					.max(0) as usize;
-
+				let pad = (self.col() - buf_len - content_len).max(0) as usize;
 				write!(buf, "{}{}", ' '.repeat(pad), content).unwrap();
 			}
 			Center => unimplemented!("Center alignment not supported"),
@@ -119,12 +143,18 @@ impl Disassembler {
 	}
 
 	#[inline]
-	fn col(&self) -> usize {
+	fn buf_len(&self) -> isize {
+		let buf = unsafe { &*self.buf.get() };
+		ansi::strip(buf).unwrap().len() as _
+	}
+
+	#[inline]
+	fn col(&self) -> isize {
 		unsafe { *self.col.get() }
 	}
 
 	#[inline]
-	fn set_col(&self, col: usize) {
+	fn set_col(&self, col: isize) {
 		let c = unsafe { &mut *self.col.get() };
 		*c = col;
 	}
@@ -137,6 +167,7 @@ pub(super) struct Disassembler;
 #[rustfmt::skip]
 impl Disassembler {
 	#[inline(always)] pub fn new() -> Self { Self }
+	#[inline(always)] pub fn write_header(&self, _: &str) {}
 	#[inline(always)] pub fn write_preamble(&self, _: usize, _: &Lines) {}
 	#[inline(always)] pub fn write_opcode(&self, _: OpCode) {}
 	#[inline(always)] pub fn write_value(&self, _: Value) {}

@@ -26,6 +26,9 @@
 		"cli-tools": {
 			"tags": []
 		},
+		"macro_utils": {
+			"tags": []
+		},
 		"spec": {
 			"tags": []
 		},

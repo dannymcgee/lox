@@ -1,0 +1,23 @@
+[package]
+name = "macro_utils"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[[test]]
+name = "tests"
+path = "tests/tests.rs"
+
+[dependencies.syn]
+version = "1.0"
+features = ["full", "extra-traits"]
+
+[dependencies]
+proc-macro2 = "1"
+quote = "1"
+
+[dev-dependencies.trybuild]
+version = "1"
+features = ["diff"]

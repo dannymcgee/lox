@@ -26,6 +26,8 @@ impl Iterator for Repl {
 
 	fn next(&mut self) -> Option<Self::Item> {
 		let mut stdout = cli::stdout();
+
+		writeln!(stdout).unwrap();
 		stdout.prompt().ok()?;
 		stdout.flush().ok()?;
 

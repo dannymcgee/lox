@@ -51,6 +51,7 @@ impl VM {
 			*ip = Some(chunk.into_iter());
 		}
 
+		self.disasm.write_header("chunk");
 		self.run()
 	}
 
