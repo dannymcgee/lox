@@ -5,13 +5,15 @@ Yet another Lox implementation (from the excellent book [Crafting Interpreters](
 ## Implementations
 
 -   Tree-Walk interpreter in TypeScript (because it's my comfort zone) – **Complete**
--   Bytecode VM in Rust (because C is annoying and I've been itching to learn a modern systems language) **~6% done**
+-   Bytecode VM in Rust (started almost a year ago in a naive attempt to learn the language from scratch — ha! Revisiting now that I'm a battle-hardened Rustacean) **~25% done**
 
 ## Misc
 
 -   Simple but accurate VS Code grammar for syntax highlighting available under `packages/vscode-lox`
 
-## Running the project
+## Running the Project
+
+### Dependencies
 
 The workspace is managed through [Nx](https://nx.dev/). Globally install the `nx` Node package for the best experience:
 
@@ -29,19 +31,22 @@ yarn
 npm i
 ```
 
-### Run some Lox code from terminal input
+### TypeScript AST-Walker
+
+#### Start the REPL
 
 ```sh
-nx run ts:start
+# nx start ts
+# Just kidding, this is broken
 ```
 
-### Run one of the example files
+#### Run one of the example files
 
 ```sh
-nx run ts:start --example <name> # e.g., nx start ts --example fizzbuzz2
+nx start ts --example <name> # e.g., nx start ts --example fizzbuzz2
 ```
 
-### Generate AST types
+#### Generate AST types
 
 Modify the definitions in `packages/tools/src/lib/generate-ast.ts` as necessary, then run:
 
@@ -49,7 +54,23 @@ Modify the definitions in `packages/tools/src/lib/generate-ast.ts` as necessary,
 nx run tools:generate
 ```
 
-### Build the VS Code grammar
+### Rust VM
+
+#### Start the REPL
+
+```sh
+# Only partially implemented so far
+nx start vm  # --debug parse,codegen,exec
+```
+
+#### Run one of the example files
+
+```sh
+# Not yet implemented
+nx start vm --example <nam>  # e.g., nx start vm --example fizzbuzz2
+```
+
+## Build the VS Code grammar
 
 ```sh
 yarn run package:vscode-lox
