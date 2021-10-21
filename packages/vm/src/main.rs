@@ -16,7 +16,7 @@ fn main() -> anyhow::Result<()> {
 	let args = cli::args()?;
 
 	if let Some(example) = args.example {
-		vm::get().interpret(example)
+		vm::get().interpret(example).map(|_| ())
 	} else {
 		repl::start()
 	}

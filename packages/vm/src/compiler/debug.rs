@@ -101,6 +101,21 @@ pub(super) fn codegen_instr(name: &'static str, op: OpCode, _: Span) {
 	}
 }
 
+pub(super) fn codegen_pair(name: &'static str, pair: (OpCode, OpCode), _: Span) {
+	if should_print(DebugFlags::CODEGEN) {
+		write_label("codegen");
+		write_fn_call(name);
+
+		let (a, b) = pair;
+		write_byte(a as u8);
+		write_opcode(a);
+		write_byte(b as u8);
+		write_opcode(b);
+
+		flush();
+	}
+}
+
 pub(super) fn codegen_const(name: &'static str, value: Value, _: Span) {
 	if should_print(DebugFlags::CODEGEN) {
 		write_label("codegen");
@@ -183,6 +198,16 @@ fn write_token(token: Token) {
 			write_enum_variant("Brace");
 			write_operator_bright(token.lexeme());
 		}
+		Keyword => {
+			write_enum_variant("Keyword");
+			let lex = token.lexeme();
+			match lex {
+				"true" | "false" | "nil" => {
+					write_language_constant(lex);
+				}
+				_ => write_keyword(lex),
+			}
+		}
 		_ => unimplemented!(),
 	};
 }
@@ -229,6 +254,16 @@ fn write_operator_bright(lex: &str) {
 fn write_enum_variant(name: &str) {
 	let mut buf = buf();
 	write!(&mut buf, "{} ", Color::DarkGray.italic().paint(name)).unwrap();
+}
+
+fn write_language_constant(lex: &str) {
+	let mut buf = buf();
+	write!(&mut buf, "{} ", Color::Cyan.italic().paint(lex)).unwrap();
+}
+
+fn write_keyword(lex: &str) {
+	let mut buf = buf();
+	write!(&mut buf, "{} ", Color::Magenta.italic().paint(lex)).unwrap();
 }
 
 fn flush() {

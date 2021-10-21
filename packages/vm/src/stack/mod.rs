@@ -3,7 +3,7 @@ use std::{
 	fmt, mem, ptr,
 };
 
-use crate::value::Value;
+use crate::cli::FmtColored;
 
 #[cfg(test)]
 mod tests;
@@ -58,6 +58,16 @@ impl<T> Stack<T> {
 		}
 	}
 
+	pub fn mutate<F>(&mut self, mut mutate: F)
+	where F: FnMut(&mut T) {
+		if self.is_empty() {
+			return;
+		}
+
+		let value = unsafe { &mut *self.end.sub(1) };
+		mutate(value);
+	}
+
 	pub fn empty(&mut self) {
 		while self.pop().is_some() {}
 	}
@@ -72,20 +82,6 @@ impl<T> Stack<T> {
 	}
 }
 
-impl<T> Stack<T>
-where T: Copy
-{
-	pub fn mutate<F>(&mut self, mut mutate: F)
-	where F: FnMut(&mut T) {
-		if self.is_empty() {
-			return;
-		}
-
-		let value = unsafe { &mut *self.end.sub(1) };
-		mutate(value);
-	}
-}
-
 impl<T> Drop for Stack<T> {
 	fn drop(&mut self) {
 		self.empty();
@@ -95,16 +91,8 @@ impl<T> Drop for Stack<T> {
 	}
 }
 
-pub trait FmtStackElement {
-	fn fmt_value(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		write!(f, "{}", self.fmt_to_string())
-	}
-
-	fn fmt_to_string(&self) -> String;
-}
-
 impl<T> fmt::Debug for Stack<T>
-where T: FmtStackElement
+where T: FmtColored
 {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		let mut ptr = self.begin;
@@ -117,32 +105,10 @@ where T: FmtStackElement
 			}
 
 			let value = unsafe { &*ptr };
-			value.fmt_value(f)?;
+			value.fmt_(f)?;
 
 			ptr = unsafe { ptr.add(1) };
 		}
 		write!(f, "]")
-	}
-}
-
-impl FmtStackElement for Value {
-	fn fmt_to_string(&self) -> String {
-		let prec = if self.abs() % 1. < f64::EPSILON {
-			0
-		} else if self.abs() * 10. % 1. < f64::EPSILON {
-			1
-		} else if self.abs() * 100. % 1. < f64::EPSILON {
-			2
-		} else {
-			3
-		};
-
-		format!("{1:.0$}", prec, self)
-	}
-}
-
-impl FmtStackElement for &str {
-	fn fmt_to_string(&self) -> String {
-		format!(r#""{}""#, self)
 	}
 }

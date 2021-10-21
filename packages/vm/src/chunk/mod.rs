@@ -27,11 +27,18 @@ pub enum OpCode {
 	Constant   = 0x00,
 	Constant16 = 0x01,
 	Constant24 = 0x02,
+	Nil        = 0x03,
+	True       = 0x04,
+	False      = 0x05,
 	Add        = 0x10,
 	Subtract   = 0x11,
 	Multiply   = 0x12,
 	Divide     = 0x13,
 	Negate     = 0x14,
+	Not        = 0x15,
+	Equal      = 0x16,
+	Greater    = 0x17,
+	Less       = 0x18,
 	Return     = 0xFF,
 }
 
@@ -45,11 +52,18 @@ impl TryFrom<u8> for OpCode {
 			0x00 => Ok(OpCode::Constant),
 			0x01 => Ok(OpCode::Constant16),
 			0x02 => Ok(OpCode::Constant24),
+			0x03 => Ok(OpCode::Nil),
+			0x04 => Ok(OpCode::True),
+			0x05 => Ok(OpCode::False),
 			0x10 => Ok(OpCode::Add),
 			0x11 => Ok(OpCode::Subtract),
 			0x12 => Ok(OpCode::Multiply),
 			0x13 => Ok(OpCode::Divide),
 			0x14 => Ok(OpCode::Negate),
+			0x15 => Ok(OpCode::Not),
+			0x16 => Ok(OpCode::Equal),
+			0x17 => Ok(OpCode::Greater),
+			0x18 => Ok(OpCode::Less),
 			0xFF => Ok(OpCode::Return),
 			_ => Err(OpCodeError(format!("UNKNOWN: {:#04x}", byte))),
 		}
@@ -107,7 +121,7 @@ impl Chunk {
 		self.lines.add_byte(line, self.data.len() - 1);
 	}
 
-	fn extend(&mut self, bytes: &[u8], line: usize) {
+	pub fn extend(&mut self, bytes: &[u8], line: usize) {
 		self.lines.add_byte(line, self.data.len());
 		// TODO: Add a proper Vector::extend implementation
 		for byte in bytes.iter() {

@@ -10,7 +10,9 @@ use nu_ansi_term::{AnsiGenericString, Color};
 use once_cell::sync::OnceCell;
 
 use crate::debug::Repeat;
+pub use fmt_colored::FmtColored;
 
+mod fmt_colored;
 mod parser;
 
 static STDIO: OnceCell<Stdio> = OnceCell::new();
@@ -32,6 +34,7 @@ bitflags! {
 		const EXEC    = 0b100;
 
 		const COMPILE = Self::PARSE.bits | Self::CODEGEN.bits;
+		const ALL = Self::COMPILE.bits | Self::EXEC.bits;
 	}
 }
 

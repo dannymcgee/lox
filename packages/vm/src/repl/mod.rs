@@ -2,11 +2,28 @@ use std::io::{self, prelude::*, StdoutLock};
 
 use nu_ansi_term::Color;
 
-use crate::{cli, vm};
+use crate::{
+	cli::{self, FmtColored},
+	vm,
+};
 
 pub fn start() -> anyhow::Result<()> {
 	for line in Repl::start() {
-		vm::get().interpret(line)?;
+		match vm::get().interpret(line)? {
+			Some(value) => {
+				let mut stdout = cli::stdout();
+				writeln!(
+					stdout,
+					"{} {}",
+					Color::DarkGray.paint("=>"),
+					value.fmt_colored()
+				)?;
+			}
+			None => {
+				let mut stdout = cli::stdout();
+				writeln!(stdout, "{}", Color::DarkGray.paint("=> void"),)?;
+			}
+		}
 	}
 
 	Ok(())

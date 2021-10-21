@@ -12,8 +12,8 @@ use Alignment::*;
 
 use crate::{
 	chunk::{Lines, OpCode},
-	cli::{self, DebugFlags},
-	stack::{FmtStackElement, Stack},
+	cli::{self, DebugFlags, FmtColored},
+	stack::Stack,
 	value::Value,
 };
 
@@ -92,14 +92,15 @@ impl Disassembler {
 		let name = format!("{:?}", op);
 		let name = match op {
 			Constant | Constant16 | Constant24 => Color::Green.paint(name),
+			True | False | Nil => Color::Cyan.paint(name),
 			_ => Color::Fixed(5).bold().paint(name),
 		};
 
 		self.write(format!("{} {}", byte, name), Left);
 	}
 
-	pub fn write_value(&self, value: Value) {
-		let data = format!(" {}", Color::Cyan.paint(value.fmt_to_string()));
+	pub fn write_value(&self, value: &Value) {
+		let data = format!(" {}", Color::Cyan.paint(value.fmt_colored()));
 		self.write(data, Left);
 	}
 

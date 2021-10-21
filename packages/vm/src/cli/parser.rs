@@ -68,6 +68,12 @@ impl<'a> Parse<'a> for Args {
 							Some(Token::Word("compile", _)) => {
 								result.debug |= DebugFlags::COMPILE;
 							}
+							Some(Token::Boolean("true", _)) => {
+								result.debug |= DebugFlags::ALL;
+							}
+							Some(Token::Boolean("false", _)) => {
+								result.debug = DebugFlags::NONE;
+							}
 							Some(other) => {
 								return Err(SpannedError {
 									message: "Unrecognized debug argument".into(),

@@ -53,6 +53,12 @@ impl Chunk {
 		self.write_instr(op, span.start.line + 1);
 	}
 
+	#[trace(debug::codegen_pair)]
+	fn emit_pair(&mut self, pair: (OpCode, OpCode), span: Span) {
+		let (a, b) = pair;
+		self.extend(&[a as u8, b as u8], span.start.line + 1);
+	}
+
 	#[trace(debug::codegen_const)]
 	fn emit_const(&mut self, value: Value, span: Span) {
 		self.write_const(value, span.start.line + 1);
