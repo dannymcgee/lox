@@ -1,7 +1,7 @@
 use std::{mem, ptr};
 
 use crate::{
-	value::Value,
+	repr::Value,
 	vector::{IntoIter, Vector},
 };
 

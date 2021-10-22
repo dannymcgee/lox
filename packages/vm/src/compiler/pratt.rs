@@ -7,7 +7,7 @@ use rustc_hash::{FxHashMap, FxHasher};
 
 use crate::{
 	chunk::{Chunk, OpCode},
-	value::Value,
+	repr::Value,
 	*,
 };
 

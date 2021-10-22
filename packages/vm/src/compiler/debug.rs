@@ -16,7 +16,7 @@ use crate::{
 	cli::{self, DebugFlags},
 	compiler::lexer::TokenKind,
 	debug::Repeat,
-	value::Value,
+	repr::Value,
 };
 
 use super::{

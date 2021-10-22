@@ -2,7 +2,7 @@ use std::fmt;
 
 use nu_ansi_term::Color;
 
-use crate::value::Value;
+use crate::repr::Value;
 
 pub trait FmtColored {
 	fn fmt_(&self, f: &mut fmt::Formatter) -> fmt::Result {

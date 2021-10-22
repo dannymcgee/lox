@@ -13,8 +13,8 @@ use Alignment::*;
 use crate::{
 	chunk::{Lines, OpCode},
 	cli::{self, DebugFlags, FmtColored},
+	repr::Value,
 	stack::Stack,
-	value::Value,
 };
 
 #[cfg(debug_assertions)]

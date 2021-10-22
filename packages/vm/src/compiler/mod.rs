@@ -4,7 +4,7 @@ use macro_utils::trace;
 use crate::{
 	chunk::{Chunk, OpCode},
 	compiler::pratt::PrattParser,
-	value::Value,
+	repr::Value,
 	*,
 };
 
@@ -75,7 +75,7 @@ mod debug {
 		lexer::{Stream, Token},
 		pratt::HashToken,
 		prec::Prec,
-		value::Value,
+		repr::Value,
 	};
 
 	pub enum RuleType {

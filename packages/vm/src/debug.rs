@@ -5,7 +5,7 @@ use std::{
 
 use crate::{
 	chunk::{JoinBytes, Lines, OpCode, OpCodeError},
-	value::Value,
+	repr::Value,
 };
 
 pub trait DebugInstruction {

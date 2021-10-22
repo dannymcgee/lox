@@ -1,10 +1,59 @@
 use core::fmt;
+use std::{
+	env, fs,
+	sync::{Mutex, MutexGuard},
+};
 
+use bitflags::bitflags;
 use gramatika::{Parse, ParseStreamer, Span, Spanned, SpannedError, Token as _};
+use itertools::Itertools;
 
-use super::{Args, DebugFlags};
+lazy_static! {
+	static ref DEBUG_FLAGS: Mutex<DebugFlags> = Mutex::new(DebugFlags::NONE);
+}
 
-pub(super) fn parse(raw_args: String) -> gramatika::Result<'static, (String, Args)> {
+#[derive(Debug)]
+pub struct Args {
+	pub example: Option<String>,
+	pub debug: DebugFlags,
+}
+
+bitflags! {
+	pub struct DebugFlags: u8 {
+		const NONE    = 0b000;
+		const PARSE   = 0b001;
+		const CODEGEN = 0b010;
+		const EXEC    = 0b100;
+
+		const COMPILE = Self::PARSE.bits | Self::CODEGEN.bits;
+		const ALL = Self::COMPILE.bits | Self::EXEC.bits;
+	}
+}
+
+pub fn args() -> anyhow::Result<Args> {
+	let raw = env::args().into_iter().skip(1).join("\n");
+	let (_src, mut args) = self::parse(raw)?;
+
+	let mut flags = DEBUG_FLAGS.lock().unwrap();
+	*flags = args.debug;
+	drop(flags);
+
+	if let Some(example) = args.example.as_mut() {
+		let mut path = env::current_dir()?;
+		path.extend(["packages", "spec", "src", "examples"]);
+		path.push(format!("{}.lox", example));
+
+		*example = fs::read_to_string(path)?;
+	}
+
+	Ok(args)
+}
+
+pub fn debug_flags<'a>() -> MutexGuard<'a, DebugFlags> {
+	DEBUG_FLAGS.lock().unwrap()
+}
+
+fn parse(raw_args: String) -> gramatika::Result<'static, (String, Args)> {
 	let mut parser = ParseStream::from(raw_args);
 	let args = parser.parse::<Args>()?;
 	let (src, _) = parser.into_inner();

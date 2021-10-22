@@ -61,6 +61,15 @@ impl<T> Vector<T> {
 		self.len += 1;
 	}
 
+	pub fn pop(&mut self) -> Option<T> {
+		if self.is_empty() {
+			None
+		} else {
+			self.len -= 1;
+			Some(unsafe { ptr::read(self.ptr().add(self.len)) })
+		}
+	}
+
 	pub(super) fn grow(&mut self) {
 		let (new_cap, new_layout) = if self.cap == 0 {
 			(8, Layout::array::<T>(8).unwrap())

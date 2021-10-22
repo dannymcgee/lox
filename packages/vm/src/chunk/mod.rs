@@ -14,7 +14,7 @@ mod lines;
 mod tests;
 
 use crate::{
-	value::Value,
+	repr::Value,
 	vector::{vector, Vector},
 };
 

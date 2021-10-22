@@ -34,9 +34,8 @@ impl<T> Stack<T> {
 	}
 
 	pub fn push(&mut self, elem: T) {
-		if self.size == Self::MAX {
-			panic!("Stack overflow");
-		}
+		assert!(self.size < Self::MAX, "Stack overflow");
+
 		unsafe {
 			ptr::write(self.end, elem);
 			self.end = self.end.add(1)

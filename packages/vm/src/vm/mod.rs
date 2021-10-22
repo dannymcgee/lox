@@ -3,8 +3,8 @@ use std::{cell::UnsafeCell, convert::TryFrom};
 use crate::{
 	chunk::{self, JoinBytes, OpCode},
 	compiler,
+	repr::Value,
 	stack::Stack,
-	value::Value,
 };
 
 use self::{debug::Disassembler, error::Error};
