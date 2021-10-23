@@ -1,48 +1,69 @@
-import * as cp_ from "child_process";
+import * as cp from "child_process";
+import * as fs from "fs";
 import * as path from "path";
-
-namespace cp {
-	export function spawn(
-		cmd: string,
-		args: string[],
-		options: cp_.SpawnOptions
-	) {
-		return new Promise<void>((resolve, reject) => {
-			let proc = cp_.spawn(cmd, args, options);
-
-			proc.on("error", reject);
-			proc.on("exit", onExit);
-			proc.on("close", onExit);
-
-			function onExit(code?: number) {
-				if (code) reject(code);
-				else resolve();
-			}
-		});
-	}
-}
 
 async function main() {
 	let cwd = path.resolve(__dirname, "../../");
 	let args = parseArgs();
+	let debugPath = path.join(__dirname, "./debug.log");
 
 	try {
-		await cp.spawn("cargo", ["run", "-p=vm", "--", ...args], {
-			cwd,
-			stdio: ["inherit", "inherit", "inherit"],
-			shell: true,
-		});
+		await fs.promises.writeFile(debugPath, "");
 	} catch (err) {
-		if (typeof err === "number") {
-			process.exit(err);
-		} else {
-			console.error(err);
-			process.exit(1);
-		}
+		console.error(err);
+		process.exit(1);
+	}
+
+	let debug = fs.createWriteStream(debugPath);
+	await new Promise((resolve) => {
+		debug.on("open", resolve);
+	});
+
+	let debugTerm = cp.spawn("start", [
+		"wt", "nt", "--title", "Debug", "PowerShell", "-c",
+		"Get-Content", debugPath, "-Wait",
+	], {
+		cwd,
+		stdio: "pipe",
+		shell: true,
+	});
+
+	let app = cp.spawn("cargo", ["run", "-p=vm", "--", ...args], {
+		cwd,
+		stdio: ["inherit", "inherit", debug],
+		shell: true,
+	});
+
+	try {
+		await processExit(app);
+	} catch (err) {
+		setTimeout(() => {
+			if (typeof err === "number") {
+				process.exit(err);
+			} else {
+				console.error(err);
+				process.exit(1);
+			}
+		})
+	} finally {
+		debugTerm.kill(0);
 	}
 }
 
 main();
+
+function processExit(proc: cp.ChildProcess) {
+	return new Promise<void>((resolve, reject) => {
+		proc.on("error", reject);
+		proc.on("exit", onExit);
+		proc.on("close", onExit);
+
+		function onExit(code?: number) {
+			if (code) reject(code);
+			else resolve();
+		}
+	});
+}
 
 function parseArgs(): string[] {
 	let args = process.argv

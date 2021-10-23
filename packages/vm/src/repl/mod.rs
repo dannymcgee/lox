@@ -1,27 +1,32 @@
-use std::io::{self, prelude::*, StdoutLock};
+use std::sync::mpsc::Receiver;
 
 use nu_ansi_term::Color;
 
 use crate::{
-	cli::{self, FmtColored},
+	cli::{self, Area, FmtColored},
 	vm,
 };
 
 pub fn start() -> anyhow::Result<()> {
 	for line in Repl::start() {
-		match vm::get().interpret(line)? {
+		match vm::get().interpret(line.clone())? {
 			Some(value) => {
-				let mut stdout = cli::stdout();
-				writeln!(
-					stdout,
-					"{} {}",
-					Color::DarkGray.paint("=>"),
-					value.fmt_colored()
+				let mut stdio = cli::stdio();
+				stdio.writeln(
+					format!(
+						"{} {} {}",
+						Color::DarkGray.paint(line),
+						Color::DarkGray.paint("=>"),
+						value.fmt_colored(),
+					),
+					Area::Output,
 				)?;
+				stdio.flush()?;
 			}
 			None => {
-				let mut stdout = cli::stdout();
-				writeln!(stdout, "{}", Color::DarkGray.paint("=> void"),)?;
+				let mut stdio = cli::stdio();
+				stdio.writeln(Color::DarkGray.paint("=> void"), Area::Output)?;
+				stdio.flush()?;
 			}
 		}
 	}
@@ -29,12 +34,15 @@ pub fn start() -> anyhow::Result<()> {
 	Ok(())
 }
 
-struct Repl;
+struct Repl {
+	stdin: Receiver<String>,
+}
 
 impl Repl {
 	fn start() -> Self {
-		cli::cls();
-		Self
+		Self {
+			stdin: cli::stdio().stdin().unwrap(),
+		}
 	}
 }
 
@@ -42,33 +50,6 @@ impl Iterator for Repl {
 	type Item = String;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		let mut stdout = cli::stdout();
-
-		writeln!(stdout).unwrap();
-		stdout.prompt().ok()?;
-		stdout.flush().ok()?;
-
-		drop(stdout);
-
-		let mut buf = String::new();
-		let mut stdin = cli::stdin();
-		stdin.read_line(&mut buf).ok()?;
-
-		Some(buf)
-	}
-}
-
-trait ReplPrompt {
-	fn prompt(&mut self) -> io::Result<()>;
-}
-
-impl ReplPrompt for StdoutLock<'static> {
-	fn prompt(&mut self) -> io::Result<()> {
-		write!(
-			self,
-			"{} {} ",
-			Color::LightBlue.bold().paint("lox"),
-			cli::prompt_char()
-		)
+		self.stdin.recv().ok()
 	}
 }

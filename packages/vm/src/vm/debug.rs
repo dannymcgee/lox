@@ -12,7 +12,7 @@ use Alignment::*;
 
 use crate::{
 	chunk::{Lines, OpCode},
-	cli::{self, DebugFlags, FmtColored},
+	cli::{self, Area, DebugFlags, FmtColored},
 	repr::Value,
 	stack::Stack,
 };
@@ -43,9 +43,11 @@ impl Disassembler {
 		}
 	}
 
-	pub fn write_header(&self, name: &str) {
+	pub fn write_header(&self, _: &str) {
 		if cli::debug_flags().contains(DebugFlags::EXEC) {
-			cli::print_header("exec", name);
+			let mut stdio = cli::stdio();
+			stdio.writeln("", Area::Debug).unwrap();
+			stdio.flush().unwrap();
 		}
 	}
 
@@ -114,7 +116,9 @@ impl Disassembler {
 	pub fn flush(&self) {
 		let buf = self.buf();
 		if cli::debug_flags().contains(DebugFlags::EXEC) {
-			println!("{}", buf);
+			let mut stdio = cli::stdio();
+			stdio.writeln(&buf, Area::Debug).unwrap();
+			stdio.flush().unwrap();
 		}
 		buf.clear();
 	}

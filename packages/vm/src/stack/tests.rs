@@ -35,29 +35,3 @@ fn it_works() {
 	}
 	assert!(stack.is_empty());
 }
-
-#[test]
-fn it_supports_fmt_debug() {
-	let mut stack = Stack::new();
-	stack.push("foo");
-	stack.push("bar");
-	stack.push("baz");
-
-	let debug = format!("{:?}", stack);
-	assert_eq!(&debug, r#"["foo", "bar", "baz"]"#);
-
-	stack.pop().unwrap();
-
-	let debug = format!("{:?}", stack);
-	assert_eq!(&debug, r#"["foo", "bar"]"#);
-
-	stack.push("Lorem Ipsum");
-
-	let debug = format!("{:?}", stack);
-	assert_eq!(&debug, r#"["foo", "bar", "Lorem Ipsum"]"#);
-
-	stack.empty();
-
-	let debug = format!("{:?}", stack);
-	assert_eq!(&debug, "[]");
-}

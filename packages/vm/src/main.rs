@@ -1,4 +1,5 @@
 #![feature(allocator_api)]
+#![feature(stdio_locked)]
 
 use repr::alloc;
 
@@ -20,23 +21,19 @@ mod vector;
 mod vm;
 
 fn main() -> anyhow::Result<()> {
-	cli::init();
+	let args = cli::args()?;
 
-	let _ = cli::args()?;
-	let renderer = cli::render::start();
-	let mem_spy = alloc::Spy::enable_logging();
+	if let Some(example) = args.example {
+		vm::get().interpret(example).map(|_| ())?;
+	} else {
+		let term = cli::init()?;
+		let mem_spy = alloc::Spy::enable_logging();
 
-	// {
-	// 	let args = cli::args()?;
-	// 	if let Some(example) = args.example {
-	// 		vm::get().interpret(example).map(|_| ())
-	// 	} else {
-	// 		repl::start()
-	// 	}?;
-	// }
+		repl::start()?;
 
-	mem_spy.join().unwrap();
-	renderer.join().unwrap();
+		mem_spy.join().unwrap()?;
+		term.join().unwrap()?;
+	}
 
 	Ok(())
 }

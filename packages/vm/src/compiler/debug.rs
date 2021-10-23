@@ -1,6 +1,5 @@
 use std::{
 	fmt::Write as _,
-	io::Write as _,
 	sync::{
 		atomic::{AtomicBool, AtomicUsize, Ordering},
 		Mutex, MutexGuard,
@@ -13,7 +12,7 @@ use once_cell::sync::OnceCell;
 
 use crate::{
 	chunk::OpCode,
-	cli::{self, DebugFlags},
+	cli::{self, Area, DebugFlags},
 	compiler::lexer::TokenKind,
 	debug::Repeat,
 	repr::Value,
@@ -38,9 +37,11 @@ lazy_static! {
 	static ref RULE_TYPE: Mutex<RuleType> = Mutex::new(RuleType::Prefix);
 }
 
-pub(super) fn write_header(name: &str) {
+pub(super) fn write_header(_: &str) {
 	if cli::debug_flags().intersects(DebugFlags::COMPILE) {
-		cli::print_header("compile", name);
+		let mut stdio = cli::stdio();
+		stdio.writeln("", Area::Debug).unwrap();
+		stdio.flush().unwrap();
 	}
 }
 
@@ -143,13 +144,7 @@ fn get_indent() -> usize {
 
 fn write_label(label: &str) {
 	let mut buf = buf();
-	write!(
-		&mut buf,
-		"{} {} ",
-		Color::Yellow.paint(label),
-		cli::prompt_char()
-	)
-	.unwrap()
+	write!(&mut buf, "{} > ", Color::Yellow.paint(label)).unwrap()
 }
 
 fn write_indent(depth: usize) {
@@ -268,10 +263,11 @@ fn write_keyword(lex: &str) {
 
 fn flush() {
 	let mut buf = buf();
-	let mut stdout = cli::stdout();
+	let mut stdio = cli::stdio();
 
-	writeln!(stdout, "{}", buf).unwrap();
-	stdout.flush().unwrap();
+	stdio.writeln(&buf, Area::Debug).unwrap();
+	stdio.flush().unwrap();
+
 	buf.clear();
 }
 

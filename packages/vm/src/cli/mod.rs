@@ -1,45 +1,51 @@
-use std::io::{self, Stdin, StdinLock, Stdout, StdoutLock};
+use std::{
+	io,
+	sync::{Mutex, MutexGuard},
+	thread::{self, JoinHandle},
+	time::Duration,
+};
 
-use once_cell::sync::OnceCell;
+use crossterm::{
+	cursor, execute,
+	terminal::{self, ClearType},
+};
 
 pub use self::{
 	args::{args, debug_flags, DebugFlags},
 	fmt_colored::FmtColored,
-	render::*,
+	stdio::*,
 };
 
 mod args;
 mod fmt_colored;
-pub mod render;
+mod stdio;
+mod view;
 
-static STDIO: OnceCell<Stdio> = OnceCell::new();
-
-struct Stdio {
-	stdin: Stdin,
-	stdout: Stdout,
+lazy_static! {
+	static ref STDIO: Mutex<Stdio> = Mutex::new(Stdio::new());
 }
 
-pub fn init() {
-	let _ = Stdio::get();
+pub fn init() -> anyhow::Result<JoinHandle<anyhow::Result<()>>> {
+	terminal::enable_raw_mode()?;
+
+	let mut stderr = io::stderr_locked();
+	execute!(
+		&mut stderr,
+		terminal::Clear(ClearType::All),
+		cursor::MoveTo(0, 0),
+	)?;
+	drop(stderr);
+
+	stdio().init_prompt()?;
+
+	let handle = thread::spawn(|| loop {
+		stdio().poll_events()?;
+		thread::sleep(Duration::from_millis(5));
+	});
+
+	Ok(handle)
 }
 
-pub fn stdout() -> StdoutLock<'static> {
-	Stdio::get().stdout.lock()
-}
-
-pub fn stdin() -> StdinLock<'static> {
-	Stdio::get().stdin.lock()
-}
-
-impl Stdio {
-	fn new() -> Self {
-		Stdio {
-			stdin: io::stdin(),
-			stdout: io::stdout(),
-		}
-	}
-
-	fn get() -> &'static Self {
-		STDIO.get_or_init(Stdio::new)
-	}
+pub fn stdio<'a>() -> MutexGuard<'a, Stdio> {
+	STDIO.lock().unwrap()
 }

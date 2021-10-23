@@ -1,21 +1,20 @@
 use std::{
 	alloc::{self, Allocator, GlobalAlloc, Layout, System},
 	ptr::NonNull,
-	sync::atomic::{AtomicBool, AtomicUsize, Ordering::SeqCst},
+	sync::Mutex,
 	thread::{self, JoinHandle},
 	time::Duration,
 };
 
 use crate::cli;
 
-static BYTES: AtomicUsize = AtomicUsize::new(0);
-static ALLOCATIONS: AtomicUsize = AtomicUsize::new(0);
-static DEALLOCATIONS: AtomicUsize = AtomicUsize::new(0);
-
-static LOGGING_ENABLED: AtomicBool = AtomicBool::new(false);
+lazy_static! {
+	static ref STATE: Mutex<MemState> = Mutex::new(MemState::default());
+}
 
 pub struct Spy;
 
+#[derive(Clone, Copy, Debug, Default)]
 pub struct MemState {
 	pub bytes: usize,
 	pub allocs: usize,
@@ -24,27 +23,16 @@ pub struct MemState {
 }
 
 impl Spy {
-	pub fn enable_logging() -> JoinHandle<()> {
-		LOGGING_ENABLED.store(true, SeqCst);
-
+	pub fn enable_logging() -> JoinHandle<anyhow::Result<()>> {
 		thread::spawn(|| loop {
-			Self::report();
+			Self::report()?;
 			thread::sleep(Duration::from_secs(1));
 		})
 	}
 
-	fn report() {
-		let bytes = BYTES.load(SeqCst);
-		let allocs = ALLOCATIONS.load(SeqCst);
-		let deallocs = DEALLOCATIONS.load(SeqCst);
-		let balance = allocs - deallocs;
-
-		cli::update_mem_readout(MemState {
-			bytes,
-			allocs,
-			deallocs,
-			balance,
-		});
+	fn report() -> anyhow::Result<()> {
+		let state = *STATE.lock().unwrap();
+		cli::stdio().update_mem_readout(state)
 	}
 }
 
@@ -58,8 +46,11 @@ unsafe impl GlobalAlloc for Spy {
 			}
 		};
 
-		BYTES.fetch_add(layout.size(), SeqCst);
-		ALLOCATIONS.fetch_add(1, SeqCst);
+		if let Ok(mut state) = STATE.lock() {
+			state.bytes += layout.size();
+			state.allocs += 1;
+			state.balance = state.allocs - state.deallocs;
+		}
 
 		result
 	}
@@ -71,8 +62,10 @@ unsafe impl GlobalAlloc for Spy {
 		};
 		System.deallocate(ptr, layout);
 
-		BYTES.fetch_sub(layout.size(), SeqCst);
-		ALLOCATIONS.load(SeqCst);
-		DEALLOCATIONS.fetch_add(1, SeqCst);
+		if let Ok(mut state) = STATE.lock() {
+			state.bytes -= layout.size();
+			state.deallocs += 1;
+			state.balance = state.allocs - state.deallocs;
+		}
 	}
 }
