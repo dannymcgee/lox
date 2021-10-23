@@ -8,7 +8,7 @@ use std::{
 
 use crossterm::{
 	cursor,
-	event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
+	event::{self, Event, KeyCode, KeyEvent, KeyModifiers, MouseEvent, MouseEventKind},
 	execute, queue,
 	style::{self, Attribute, Color},
 	terminal::{self, ClearType},
@@ -127,21 +127,23 @@ impl Stdio {
 	pub fn update_mem_readout(&mut self, state: MemState) -> anyhow::Result<()> {
 		self.mark_dirty()?;
 
-		let (_, h) = self.size;
+		let (w, h) = self.size;
 		let target = &mut self.target;
+		let content = format!(
+			"mem: {} | allocations: {}",
+			fmt_bytes(state.bytes),
+			state.allocs
+		);
+		let clear_fill = ' '.repeat(content.len() + 10);
+		let col = (w as isize - content.len() as isize).max(0) as u16;
 
 		queue!(
 			target,
-			cursor::MoveTo(0, h - 2),
-			terminal::Clear(ClearType::CurrentLine),
+			cursor::MoveTo(col, h - 2),
+			style::Print(clear_fill),
+			cursor::MoveTo(col, h - 2),
 			style::SetForegroundColor(Color::DarkGrey),
-			style::Print(format!(
-				"mem: {} | allocs: +{} / -{} ({})",
-				fmt_bytes(state.bytes),
-				state.allocs,
-				state.deallocs,
-				state.balance
-			)),
+			style::Print(content),
 		)?;
 
 		self.flush()?;
@@ -163,6 +165,12 @@ impl Stdio {
 			style::Print(&divider),
 			cursor::MoveTo(0, h - 3),
 			style::Print(divider),
+			cursor::MoveTo(0, h - 2),
+			style::Print(callout("Scroll Output", "Ctrl+Up/Down")),
+			style::ResetColor,
+			style::Print("    "),
+			style::Print(callout("Scroll Debug", "Ctrl+Shift+Up/Down")),
+			style::ResetColor,
 			cursor::MoveTo(0, 0),
 			style::SetForegroundColor(Color::Blue),
 			style::SetAttribute(Attribute::Bold),
@@ -197,8 +205,8 @@ impl Stdio {
 						Enter => self.submit_stdin()?,
 						Left => self.cursor_left()?,
 						Right => self.cursor_right()?,
-						Up => {}   // TODO
-						Down => {} // TODO
+						Up => self.scroll_kb(1, modifiers)?,
+						Down => self.scroll_kb(-1, modifiers)?,
 						Home => self.home()?,
 						End => self.end()?,
 						PageUp => {}   // TODO
@@ -213,7 +221,11 @@ impl Stdio {
 						Esc => self.exit(),
 					}
 				}
-				Event::Mouse(_) => {}     // TODO
+				Event::Mouse(evt @ MouseEvent { kind, .. }) => match kind {
+					MouseEventKind::ScrollDown => self.scroll_mouse(-1, evt)?,
+					MouseEventKind::ScrollUp => self.scroll_mouse(1, evt)?,
+					_ => {}
+				},
 				Event::Resize(_, _) => {} // TODO
 			}
 			queue!(&mut self.target, cursor::SavePosition)?;
@@ -352,6 +364,46 @@ impl Stdio {
 		Ok(())
 	}
 
+	/// `delta` is -1 to reveal past messages, or +1 to reveal newer.
+	/// Since messages are displayed in reverse chrono order, ScrollDown == -1.
+	fn scroll_mouse(&mut self, delta: i8, event: MouseEvent) -> anyhow::Result<()> {
+		let view = if self.output.contains(event.column, event.row) {
+			self.mark_dirty()?;
+			Some(&mut self.output)
+		} else if self.debug.contains(event.column, event.row) {
+			self.mark_dirty()?;
+			Some(&mut self.debug)
+		} else {
+			None
+		};
+
+		if let Some(view) = view {
+			view.scroll(delta, &mut self.target)?;
+			self.flush()?;
+		}
+
+		Ok(())
+	}
+
+	fn scroll_kb(&mut self, delta: i8, mods: KeyModifiers) -> anyhow::Result<()> {
+		let view = if mods.contains(KeyModifiers::CONTROL | KeyModifiers::SHIFT) {
+			self.mark_dirty()?;
+			Some(&mut self.debug)
+		} else if mods.intersects(KeyModifiers::CONTROL) {
+			self.mark_dirty()?;
+			Some(&mut self.output)
+		} else {
+			None
+		};
+
+		if let Some(view) = view {
+			view.scroll(delta, &mut self.target)?;
+			self.flush()?;
+		}
+
+		Ok(())
+	}
+
 	fn clear(&mut self) -> anyhow::Result<()> {
 		write!(self.target, "{esc}[2J{esc}[1;1H", esc = 0x1b as char)?;
 		Ok(())
@@ -386,4 +438,15 @@ fn fmt_bytes(size: usize) -> String {
 	} else {
 		format!("{:.3} GB", size as f64 / GB as f64)
 	}
+}
+
+fn callout(name: &str, binding: &str) -> String {
+	use nu_ansi_term::Color;
+
+	let name = Color::DarkGray
+		.reverse()
+		.paint(format!(" {} ", name));
+	let binding = Color::DarkGray.paint(binding);
+
+	format!("{} {}", name, binding)
 }

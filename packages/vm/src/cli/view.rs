@@ -5,7 +5,9 @@ use crossterm::{cursor, queue, style, QueueableCommand};
 use crate::debug::Repeat;
 
 pub(super) struct View {
-	state: VecDeque<String>,
+	messages: VecDeque<String>,
+	top: usize,
+	max: usize,
 	layout: Rect,
 }
 
@@ -19,10 +21,21 @@ pub(super) struct Rect {
 
 impl View {
 	pub(super) fn new(layout: Rect) -> Self {
+		let max = layout.height as usize * 10;
+
 		Self {
-			state: VecDeque::new(),
+			messages: VecDeque::with_capacity(max),
+			top: 0,
+			max,
 			layout,
 		}
+	}
+
+	pub(super) fn contains(&self, col: u16, row: u16) -> bool {
+		col >= self.layout.x
+			&& col < self.layout.x + self.layout.width
+			&& row >= self.layout.y
+			&& row < self.layout.y + self.layout.height
 	}
 
 	pub(super) fn write_char<T>(
@@ -91,14 +104,6 @@ impl View {
 		Ok(())
 	}
 
-	fn top_line(&mut self) -> &mut String {
-		if self.state.front_mut().is_none() {
-			self.state.push_front(String::new());
-		}
-
-		self.state.front_mut().unwrap()
-	}
-
 	pub(super) fn shift<T>(&mut self, target: &mut T) -> anyhow::Result<()>
 	where T: QueueableCommand {
 		target.queue(cursor::MoveTo(self.layout.x, self.layout.y))?;
@@ -107,7 +112,7 @@ impl View {
 		let mut r = self.layout.y + 1;
 		let max = self.layout.y + self.layout.height;
 
-		for line in self.state.iter() {
+		for line in self.messages.iter() {
 			let len = strip_ansi_escapes::strip(line)?.len();
 			if r == max {
 				break;
@@ -119,15 +124,57 @@ impl View {
 			r += 1;
 		}
 
-		if self.state.len() > self.layout.height as usize {
-			let mut last = self.state.pop_back().unwrap();
+		if self.messages.len() == self.max {
+			let mut last = self.messages.pop_back().unwrap();
 			last.clear();
-			self.state.push_front(last);
+			self.messages.push_front(last);
 		} else {
-			self.state.push_front(String::new());
+			self.messages.push_front(String::new());
 		}
 
 		Ok(())
+	}
+
+	/// `delta` is -1 to reveal older messages, +1 to reveal newer
+	pub(super) fn scroll<T>(&mut self, delta: i8, target: &mut T) -> anyhow::Result<()>
+	where T: QueueableCommand {
+		let height = self.layout.height as usize;
+		if self.messages.len() <= height {
+			return Ok(());
+		}
+
+		let max = self.messages.len();
+		let top_max = (max as isize - height as isize).max(0);
+		let new_top = (self.top as isize - delta as isize).clamp(0, top_max) as usize;
+
+		if new_top == self.top {
+			return Ok(());
+		} else {
+			self.top = new_top;
+		}
+
+		self.messages.make_contiguous();
+		let (messages, _) = self.messages.as_slices();
+
+		let mut r = self.layout.y;
+		for line in &messages[self.top..self.top + height] {
+			let len = strip_ansi_escapes::strip(line)?.len();
+
+			target.queue(cursor::MoveTo(self.layout.x, r))?;
+			target.queue(style::Print(line))?;
+			self.clear_line_from(target, self.layout.x + len as u16 + 1)?;
+
+			r += 1;
+		}
+
+		Ok(())
+	}
+
+	fn top_line(&mut self) -> &mut String {
+		if self.messages.is_empty() {
+			self.messages.push_front(String::new());
+		}
+		self.messages.front_mut().unwrap()
 	}
 
 	fn clear_line<T>(&self, target: &mut T) -> anyhow::Result<()>

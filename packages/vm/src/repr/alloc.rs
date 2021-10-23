@@ -18,8 +18,6 @@ pub struct Spy;
 pub struct MemState {
 	pub bytes: usize,
 	pub allocs: usize,
-	pub deallocs: usize,
-	pub balance: usize,
 }
 
 impl Spy {
@@ -49,7 +47,6 @@ unsafe impl GlobalAlloc for Spy {
 		if let Ok(mut state) = STATE.lock() {
 			state.bytes += layout.size();
 			state.allocs += 1;
-			state.balance = state.allocs - state.deallocs;
 		}
 
 		result
@@ -64,8 +61,7 @@ unsafe impl GlobalAlloc for Spy {
 
 		if let Ok(mut state) = STATE.lock() {
 			state.bytes -= layout.size();
-			state.deallocs += 1;
-			state.balance = state.allocs - state.deallocs;
+			state.allocs -= 1;
 		}
 	}
 }
