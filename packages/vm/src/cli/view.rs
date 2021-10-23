@@ -69,7 +69,7 @@ impl View {
 	{
 		let line_len = {
 			let line = self.top_line();
-			let len = line.len();
+			let len = strip_ansi_escapes::strip(&line)?.len();
 			line.push_str(&word.to_string());
 			len as u16
 		};
@@ -89,6 +89,7 @@ impl View {
 		T: QueueableCommand + Write,
 	{
 		let line = data.to_string();
+		let line_len = strip_ansi_escapes::strip(&line)?.len();
 
 		self.shift(target)?;
 
@@ -98,7 +99,7 @@ impl View {
 			style::Print(&line),
 		)?;
 
-		self.clear_line_from(target, self.layout.x + line.len() as u16 + 1)?;
+		self.clear_line_from(target, self.layout.x + line_len as u16 + 1)?;
 		*self.top_line() = line;
 
 		Ok(())

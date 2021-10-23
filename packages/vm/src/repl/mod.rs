@@ -9,26 +9,42 @@ use crate::{
 
 pub fn start() -> anyhow::Result<()> {
 	for line in Repl::start() {
-		match vm::get().interpret(line.clone())? {
-			Some(value) => {
-				let mut stdio = cli::stdio();
-				stdio.writeln(
-					format!(
-						"{} {} {}",
-						Color::DarkGray.paint(line),
-						Color::DarkGray.paint("=>"),
-						value.fmt_colored(),
-					),
-					Area::Output,
-				)?;
-				stdio.flush()?;
+		let result = vm::get().interpret(line.clone());
+		let mut stdio = cli::stdio();
+
+		stdio.endl(Area::Output)?;
+		stdio.write(
+			format!(
+				"{} {} ",
+				Color::DarkGray.paint(line),
+				Color::DarkGray.paint("=>")
+			),
+			Area::Output,
+		)?;
+
+		match result {
+			Ok(Some(value)) => {
+				stdio.write(value.fmt_colored(), Area::Output)?;
 			}
-			None => {
-				let mut stdio = cli::stdio();
-				stdio.writeln(Color::DarkGray.paint("=> void"), Area::Output)?;
-				stdio.flush()?;
+			Ok(None) => {
+				stdio.write(Color::DarkGray.italic().paint("void"), Area::Output)?;
+			}
+			Err(err) => {
+				stdio.write(Color::Red.bold().paint("ERROR"), Area::Output)?;
+				stdio.writeln("", Area::Debug)?;
+
+				for line in err
+					.to_string()
+					.lines()
+					.rev()
+					.filter(|l| !l.is_empty())
+				{
+					stdio.writeln(Color::Red.paint(line), Area::Debug)?;
+				}
 			}
 		}
+
+		stdio.flush()?;
 	}
 
 	Ok(())
