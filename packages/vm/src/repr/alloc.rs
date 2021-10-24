@@ -1,10 +1,11 @@
 use std::{
 	alloc::{self, Allocator, GlobalAlloc, Layout, System},
 	ptr::NonNull,
-	sync::Mutex,
 	thread::{self, JoinHandle},
 	time::Duration,
 };
+
+use parking_lot::Mutex;
 
 use crate::cli;
 
@@ -29,7 +30,7 @@ impl Spy {
 	}
 
 	fn report() -> anyhow::Result<()> {
-		let state = *STATE.lock().unwrap();
+		let state = *STATE.lock();
 		cli::stdio().update_mem_readout(state)
 	}
 }
@@ -44,10 +45,9 @@ unsafe impl GlobalAlloc for Spy {
 			}
 		};
 
-		if let Ok(mut state) = STATE.lock() {
-			state.bytes += layout.size();
-			state.allocs += 1;
-		}
+		let mut state = STATE.lock();
+		state.bytes += layout.size();
+		state.allocs += 1;
 
 		result
 	}
@@ -59,9 +59,8 @@ unsafe impl GlobalAlloc for Spy {
 		};
 		System.deallocate(ptr, layout);
 
-		if let Ok(mut state) = STATE.lock() {
-			state.bytes -= layout.size();
-			state.allocs -= 1;
-		}
+		let mut state = STATE.lock();
+		state.bytes -= layout.size();
+		state.allocs -= 1;
 	}
 }

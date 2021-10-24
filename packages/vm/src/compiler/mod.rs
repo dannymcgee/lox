@@ -28,6 +28,8 @@ pub fn compile(src: String) -> anyhow::Result<Chunk> {
 	let (src, _) = stream.into_inner();
 	chunk.set_source(src);
 
+	debug::flush();
+
 	Ok(chunk)
 }
 
@@ -94,4 +96,5 @@ mod debug {
 	#[inline(always)] pub(super) fn parse_fn(_: &'static str, _: &mut Stream) {}
 	#[inline(always)] pub(super) fn codegen_instr(_: &'static str, _: OpCode, _: Span) {}
 	#[inline(always)] pub(super) fn codegen_const(_: &'static str, _: Value, _: Span) {}
+	#[inline(always)] pub(super) fn flush() {}
 }

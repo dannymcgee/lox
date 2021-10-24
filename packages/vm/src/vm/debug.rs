@@ -117,7 +117,7 @@ impl Disassembler {
 		let buf = self.buf();
 		if cli::debug_flags().contains(DebugFlags::EXEC) {
 			let mut stdio = cli::stdio();
-			stdio.writeln(&buf, Area::Debug).unwrap();
+			stdio.writeln(buf.clone(), Area::Debug).unwrap();
 			stdio.flush().unwrap();
 		}
 		buf.clear();

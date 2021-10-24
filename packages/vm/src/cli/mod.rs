@@ -1,6 +1,5 @@
 use std::{
 	io,
-	sync::{Mutex, MutexGuard},
 	thread::{self, JoinHandle},
 	time::Duration,
 };
@@ -9,6 +8,7 @@ use crossterm::{
 	cursor, execute,
 	terminal::{self, ClearType},
 };
+use parking_lot::{Mutex, MutexGuard};
 
 pub use self::{
 	args::{args, debug_flags, DebugFlags},
@@ -47,5 +47,5 @@ pub fn init() -> anyhow::Result<JoinHandle<anyhow::Result<()>>> {
 }
 
 pub fn stdio<'a>() -> MutexGuard<'a, Stdio> {
-	STDIO.lock().unwrap()
+	STDIO.lock()
 }

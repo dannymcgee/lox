@@ -1,14 +1,11 @@
 use std::{
 	fmt::Write as _,
-	sync::{
-		atomic::{AtomicBool, AtomicUsize, Ordering},
-		Mutex, MutexGuard,
-	},
+	sync::atomic::{AtomicBool, AtomicUsize, Ordering},
 };
 
 use gramatika::{ParseStreamer, Span, Token as _};
 use nu_ansi_term::Color;
-use once_cell::sync::OnceCell;
+use parking_lot::{Mutex, MutexGuard};
 
 use crate::{
 	chunk::OpCode,
@@ -30,8 +27,8 @@ pub enum RuleType {
 	Infix,
 }
 
-static BUFFER: OnceCell<Mutex<String>> = OnceCell::new();
 lazy_static! {
+	static ref BUFFER: Mutex<String> = Mutex::new(String::new());
 	static ref ENABLED: AtomicBool = AtomicBool::new(false);
 	static ref INDENT: AtomicUsize = AtomicUsize::new(0);
 	static ref RULE_TYPE: Mutex<RuleType> = Mutex::new(RuleType::Prefix);
@@ -50,7 +47,7 @@ pub(super) fn entry(name: &'static str, _: &mut Stream) {
 		reset_indent(0);
 		write_label("parse");
 		write_fn_call(name);
-		flush();
+		endl();
 	}
 }
 
@@ -60,7 +57,7 @@ pub(super) fn precedence(name: &'static str, _: &mut Stream, prec: Prec) {
 		write_indent(1);
 		write_fn_call(name);
 		write_prec(prec);
-		flush();
+		endl();
 	}
 }
 
@@ -69,17 +66,17 @@ pub(super) fn get_rule(name: &'static str, token: HashToken) {
 		write_indent(get_indent());
 		write_fn_call(name);
 		write_enum_variant(&format!("{:?}", token));
-		flush();
+		endl();
 	}
 }
 
 pub(super) fn set_rule_type(rule_type: RuleType) {
-	let mut guard = RULE_TYPE.lock().unwrap();
+	let mut guard = RULE_TYPE.lock();
 	*guard = rule_type;
 }
 
 fn get_rule_type() -> RuleType {
-	*RULE_TYPE.lock().unwrap()
+	*RULE_TYPE.lock()
 }
 
 pub(super) fn parse_fn(name: &'static str, input: &mut Stream) {
@@ -88,7 +85,7 @@ pub(super) fn parse_fn(name: &'static str, input: &mut Stream) {
 		write_rule_type(get_rule_type());
 		write_fn_call(name);
 		write_token(*input.prev().unwrap());
-		flush();
+		endl();
 	}
 }
 
@@ -98,7 +95,7 @@ pub(super) fn codegen_instr(name: &'static str, op: OpCode, _: Span) {
 		write_fn_call(name);
 		write_byte(op as u8);
 		write_opcode(op);
-		flush();
+		endl();
 	}
 }
 
@@ -113,7 +110,7 @@ pub(super) fn codegen_pair(name: &'static str, pair: (OpCode, OpCode), _: Span) 
 		write_byte(b as u8);
 		write_opcode(b);
 
-		flush();
+		endl();
 	}
 }
 
@@ -122,7 +119,7 @@ pub(super) fn codegen_const(name: &'static str, value: Value, _: Span) {
 		write_label("codegen");
 		write_fn_call(name);
 		write_number(&format!("{}", value));
-		flush();
+		endl();
 	}
 }
 
@@ -261,19 +258,23 @@ fn write_keyword(lex: &str) {
 	write!(&mut buf, "{} ", Color::Magenta.italic().paint(lex)).unwrap();
 }
 
-fn flush() {
+fn endl() {
+	let mut buf = buf();
+	writeln!(&mut buf).unwrap();
+}
+
+pub(super) fn flush() {
 	let mut buf = buf();
 	let mut stdio = cli::stdio();
 
-	stdio.writeln(&buf, Area::Debug).unwrap();
+	for line in buf.clone().lines() {
+		stdio.writeln(line, Area::Debug).unwrap();
+	}
 	stdio.flush().unwrap();
 
 	buf.clear();
 }
 
 fn buf<'a>() -> MutexGuard<'a, String> {
-	BUFFER
-		.get_or_init(|| Mutex::new(String::new()))
-		.lock()
-		.unwrap()
+	BUFFER.lock()
 }

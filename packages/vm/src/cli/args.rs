@@ -1,12 +1,10 @@
 use core::fmt;
-use std::{
-	env, fs,
-	sync::{Mutex, MutexGuard},
-};
+use std::{env, fs};
 
 use bitflags::bitflags;
 use gramatika::{Parse, ParseStreamer, Span, Spanned, SpannedError, Token as _};
 use itertools::Itertools;
+use parking_lot::{Mutex, MutexGuard};
 
 lazy_static! {
 	static ref DEBUG_FLAGS: Mutex<DebugFlags> = Mutex::new(DebugFlags::NONE);
@@ -34,7 +32,7 @@ pub fn args() -> anyhow::Result<Args> {
 	let raw = env::args().into_iter().skip(1).join("\n");
 	let (_src, mut args) = self::parse(raw)?;
 
-	let mut flags = DEBUG_FLAGS.lock().unwrap();
+	let mut flags = DEBUG_FLAGS.lock();
 	*flags = args.debug;
 	drop(flags);
 
@@ -50,7 +48,7 @@ pub fn args() -> anyhow::Result<Args> {
 }
 
 pub fn debug_flags<'a>() -> MutexGuard<'a, DebugFlags> {
-	DEBUG_FLAGS.lock().unwrap()
+	DEBUG_FLAGS.lock()
 }
 
 fn parse(raw_args: String) -> gramatika::Result<'static, (String, Args)> {
